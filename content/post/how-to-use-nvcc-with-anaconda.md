@@ -4,8 +4,6 @@ date: 2019-09-14T00:00:00+08:00
 draft: false
 ---
 
-# 如何在 Anaconda 中使用 nvcc 编译源码——以编译安装 apex 为例
-
 ## 简介
 
 apex 是 NVIDIA 开发的 PyTorch 扩展工具，支持混合精度训练、分布式训练以及 Sync BN 等．它需要从源码编译安装，正好用来在 LXD 容器内测试一下．我们的 LXD 容器内提供了 Miniconda，而 Miniconda 不含 nvcc．为此，我们从宿主机挂载了安装好的 CUDA 到 `/usr/local` 目录下供用户使用其中的 nvcc 编译器．
