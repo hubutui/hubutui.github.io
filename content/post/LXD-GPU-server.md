@@ -29,7 +29,7 @@ LXD 容器提供：
 注意：
 
 1. LXD 容器内未有提供 CUDA，但是 Anaconda/Miniconda 可以提供 cudatoolkit runtime，不含用于编译的 nvcc 编译器，一般足以满足日常开发使用．如需 nvcc 请联系管理员添加一个 cuda 的配置文件．目前只提供 CUDA 9.0 和 CUDA 10.0 两个版本．不同版本的 CUDA 需要搭配指定版本的编译器，请使用 `update-alternatives --config gcc` 切换到所需的版本．
-2.  每个容器都分配有独立 IP，校园网范围可直接访问．需要进行校园网用户认证连接外网的可以打开浏览使用网页认证．用户可以在 http://172.21.109.102:38080 上查询每一台宿主机上运行这的 LXD 的详细信息特别是 IP．如果其他疑问，请联系管理员．
+2.  每个容器都分配有独立 IP，校园网范围可直接访问．需要进行校园网用户认证连接外网的可以打开浏览使用网页认证．用户可以在 http://x.x.x.x:38080 上查询每一台宿主机上运行这的 LXD 的详细信息特别是 IP．如果其他疑问，请联系管理员．
 3. 用户拥有容器内的全部控制权限，可以根据需要安装和修改容器内的一切东西，甚至可以自己根据需要重启容器内的系统而不影响其他用户的使用．比如安装各种版本的 cuda，更换桌面环境，安装其他软件，等等．在容器内的使用仍可参考群文件中的服务器使用指南，区别在于此时用户有最高权限．
 5. 用户在使用管理员提供的密码通过 Windows 远程桌面登录到自己的容器内的系统之后，必须修改密码．修改 VNC 密码请使用命令 `vncpasswd`，然后按照提示修改．修改用户密码请输入 `passwd`，然后按照提示修改．
 6. 使用 XRDP 的用户如果遇到 `/home/ubuntu/thinclient_drives` 无法正确挂载的问题，可以使用命令 `fusermount -u /home/ubuntu/thinclient_drives` 将其正确卸载即可．
@@ -57,7 +57,7 @@ lxc launch template container-name
 
 其中 `template` 是镜像模板的名称，可以用 `lxc image list` 常看，`container-name` 为用户的容器名称，可以使用 `username-container` 以便识别和管理．LXD 容器的存储池可能容量不足，可以把宿主机上的 `/home/username` 挂载到容器内的 `/home/ubuntu/username` 目录给用户使用．
 
-目前在 `172.21.17.98` 服务器上提供了两个模板，带桌面的 `template-ubuntu-18.04-desktop` 和不带桌面的 `template-ubuntu-18.04-no-desktop`．带桌面的镜像大小大约 1200M，不带桌面的镜像不到 500M．主要是因为带桌面的镜像还额外安装了浏览器、PyCharm 等需要桌面才能使用的软件．如果有需要，可以从这两个镜像创建容器，修改，然后保存为新的镜像作为模板使用．
+目前在服务器上提供了两个模板，带桌面的 `template-ubuntu-18.04-desktop` 和不带桌面的 `template-ubuntu-18.04-no-desktop`．带桌面的镜像大小大约 1200M，不带桌面的镜像不到 500M．主要是因为带桌面的镜像还额外安装了浏览器、PyCharm 等需要桌面才能使用的软件．如果有需要，可以从这两个镜像创建容器，修改，然后保存为新的镜像作为模板使用．
 
 举例来说，我们给用户 tom 创建容器，可以这么做：
 
@@ -118,7 +118,7 @@ lxc config container-name set limits.cpu 16
 ### 准备
 
 1. 宿主机安装 Ubuntu 18.04 或者 Ubuntu 16.04（建议使用 Ubuntu 18.04），根分区或者用于 LXD 存储池的分区的文件系统为 btrfs 或者 zfs．如果是已经安装好的系统，根分区为其他文件系统，那么 LXD 会创建一个 loopback 设备，IO 性能有所下降．最好是有另外一块硬盘格式化为 btrfs 分区来使用，这也是官方所推荐的．
-2. 宿主机安装好最新的 Nvidia 显卡驱动（再次建议使用 Ubuntu 18.04，可以直接从官方源安装 nvidia 430 驱动，足以支持到目前最新的 CUDA 10.1）．驱动安装请参考 https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa．
+2. 宿主机安装好最新的 Nvidia 显卡驱动（再次建议使用 Ubuntu 18.04，可以直接从官方源安装 nvidia 430 驱动，足以支持到目前最新的 CUDA 10.1）．Ubuntu 16.04 的驱动安装请参考 https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa．
 3. 为了能在 LXD 容器中使用 GPU，还需要参考 https://github.com/NVIDIA/nvidia-container-runtime 安装 nvidia-container-runtime．
 4. 宿主机上的 CUDA 可以安装，也可以不安装．如果你想节约磁盘空间，可以考虑在宿主机安装多个版本的 CUDA，然后挂载到容器内给用户使用．Anaconda/Miniconda 可以提供 CUDA runtime，但是不包含 nvcc，用户一般安装 CUDA 还是因为需要这个，其他的时候用 CUDA runtime 即可．
 5. 在容器内完整安装 Anaconda 就太大了，而且如果不用 Anaconda 中默认的 python 版本的时候，自带的很多包都用不上，而是在需要的时候从网络下载安装．因此，可以考虑安装 Miniconda 替代．另外，如果在宿主机安装 Anaconda/Miniconda，然后挂载到 LXD 容器内给用户使用也是很好的解决方法．
@@ -486,7 +486,7 @@ Usage:
 
 ## 利用 pylxd 查询容器信息
 
-考虑到如果有多台 GPU 设备，如果每个用户忘记了自己容器的 IP 都需要问管理员也太麻烦了．不才利用 LXD 提供的 python 包 [lxpyd](https://pylxd.readthedocs.io/en/latest/index.html) 结合 [cherrypy](https://cherrypy.org/) 写了一个简单的网页，用于查询各个宿主机上运行的 LXD 容器的信息．具体的代码托管在 [GitHub](https://github.com/hubutui/pylxd-webage) 上，并且可以打包为 Docker 镜像，该镜像已经上传到 [Docker Hub](https://hub.docker.com/r/butui/pylxd-webpage)．这个 Docker 镜像只提供了查询 LXD 容器的状态信息特别是 IP 地址的功能．实际上 pylxd 是提供了完整的管理功能的，有闲情雅致的管理员也可以在此基础上开发，方便自己管理容器．当然，目前 GitHub 上有一个轮子 [lxdui](https://github.com/AdaptiveScale/lxdui/) 提供了类似的功能，但是他并不支持管理远程管理，而且还要求本地安装好 LXD，限制蛮多的．如果本地就是 Linux 的话，安装一个 LXD 也很容器，然后用命令管理也不算台复杂的．
+考虑到如果有多台 GPU 设备，如果每个用户忘记了自己容器的 IP 都需要问管理员也太麻烦了．不才利用 LXD 提供的 python 包 [lxpyd](https://pylxd.readthedocs.io/en/latest/index.html) 结合 [cherrypy](https://cherrypy.org/) 写了一个简单的网页，用于查询各个宿主机上运行的 LXD 容器的信息．具体的代码托管在 [GitHub](https://github.com/hubutui/pylxd-webage) 上，并且可以打包为 Docker 镜像，该镜像已经上传到 [Docker Hub](https://hub.docker.com/r/butui/pylxd-webpage)．这个 Docker 镜像只提供了查询 LXD 容器的状态信息特别是 IP 地址的功能．实际上 pylxd 是提供了完整的管理功能的，有闲情雅致的管理员也可以在此基础上开发，方便自己管理容器．当然，目前 GitHub 上有一个轮子 [lxdui](https://github.com/AdaptiveScale/lxdui/) 提供了类似的功能，但是他并不支持管理远程管理，而且还要求本地安装好 LXD，限制蛮多的．如果本机就是 Linux 的话，安装一个 LXD 也很容易，然后用命令管理也不算太复杂的．
 
 ## 其他参考
 
@@ -504,5 +504,5 @@ Usage:
 3. 天下文章一大抄，都说用 lxdui 来管理，但是实际上 lxdui 暂不支持远程管理，还不如命令好好用．
 4. 我们还特地提供了一个 pylxd-webpage，供有需要的管理员和用户使用．Docker 镜像都已经上传到 Docker Hub 了，有需要的可以直接部署使用．虽然只是提供了 LXD 容器状态查询的功能，但是也是提供了一个可以借鉴的使用 pylxd 的思路．欢迎在此基础上进行开发．
 5. 共享目录这部分很多教程都语焉不详，本文特地讲得很啰嗦详细了．这个主要还是方便管理员的管理，跳过自然也是无妨的．
-6. 有人提到过不同版本的 CUDA 对编译器的不同要求么？有人好心的提供了多版本共存的 gcc/g++，并且提供了友好简单的设置么？本问独创．
+6. 有人提到过不同版本的 CUDA 对编译器的不同要求么？有人好心的提供了多版本共存的 gcc/g++，并且提供了友好简单的设置么？本文独创．
 
