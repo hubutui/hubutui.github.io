@@ -1,10 +1,8 @@
 ---
-title: "LXD GPU Server"
+title: "面向深度学习训练的LXD GPU 服务器搭建、管理与使用"
 date: 2019-09-09T00:00:00+08:00
 toc: true
 ---
-
-# 面向深度学习训练的 LXD GPU 服务器搭建、管理与使用
 
 ## 目标
 
@@ -21,7 +19,7 @@ LXD 容器提供：
    * 默认开启 xrdp 服务，可以直接使用 **Windows 远程桌面**连接，默认桌面为 LXDE．默认在用户名为 `ubuntu`，密码由管理员在创建该容器后提供，请根据需要修改，切勿使用默认的弱密码．
    * 默认设置好 VNC 服务，未有设置自动启动．用户可以根据需要使用 `systemctl --user start/status/stop/restart/enable/disable vncserver@:port` 等命令管理该 systemd 服务，注意替换 `port` 为你想用的端口即可．
 2. Nvidia 显卡驱动，不含 CUDA．
-3. PyCharm 社区版，如有需要使用专业版的请自行安装（专业版可以用学校邮箱去官网注册免费获取）．
+3. PyCharm 社区版，如有需要使用专业版的请自行安装（专业版可以用学校邮箱去官网注册免费获取，免费使用一年，到期未毕业可免费续期）．
 4. 安装在 `/home/ubuntu` 下的 Miniconda．
 5. 为了减小容器的大小，容器内 `/usr/local/MATLAB` 目录下的 matlab 挂载自宿主机．
 6. 切换 `gcc/g++` 版本可以使用 `update-alternatives --config gcc`．
@@ -47,7 +45,7 @@ LXD 容器提供：
 
 ## For 管理员
 
-## 容器管理
+### 容器管理
 
 使用模板给新用户创建容器：
 
@@ -113,6 +111,12 @@ lxc profile add tom-container cuda
 lxc config container-name set limits.cpu 16
 ```
 
+### 在不同服务器之间迁移 LXD 容器
+
+其实这个比较简单，只需要使用命令 `lxc copy server01:container01 server02:container02 --stateless --container-only –-verbose` 即可将 server01 上的容器 container01 迁移到 server02 上的 container02．建议使用 `--container-only`，不用复制容器的快照，节省时间；使用 `–-stateless` 通常也会比较稳定一些．
+
+此外，还有一些需要注意的地方，`lxc copy` 还会将 `lxc config` 给该容器设置的配置也复制过来．这可能会有一些意外的结果，需要特别处理一下．比如，你用 `lxc config` 添加了一个磁盘设备，而在 server02 上不存在该设备，则会导致迁移好的容器无法启动，在新版本的 lxd 上甚至是直接无法迁移．对于通过 `lxc config device add` 添加的磁盘设备，可以考虑在 server01 上先将其移除，然后再迁移．很显然，该磁盘中的数据是不会随之迁移，如果有需要，用户还需要自行同步这些数据．其他使用 `lxc config` 命令设置的配置项也应该需要在新的 LXD 容器上重新配置，如 `raw.idmap` 等．
+
 ## 从安装 LXD 开始
 
 ### 准备
@@ -123,7 +127,7 @@ lxc config container-name set limits.cpu 16
 4. 宿主机上的 CUDA 可以安装，也可以不安装．如果你想节约磁盘空间，可以考虑在宿主机安装多个版本的 CUDA，然后挂载到容器内给用户使用．Anaconda/Miniconda 可以提供 CUDA runtime，但是不包含 nvcc，用户一般安装 CUDA 还是因为需要这个，其他的时候用 CUDA runtime 即可．
 5. 在容器内完整安装 Anaconda 就太大了，而且如果不用 Anaconda 中默认的 python 版本的时候，自带的很多包都用不上，而是在需要的时候从网络下载安装．因此，可以考虑安装 Miniconda 替代．另外，如果在宿主机安装 Anaconda/Miniconda，然后挂载到 LXD 容器内给用户使用也是很好的解决方法．
 
-## 安装与配置 LXD
+### 安装与配置 LXD
 
 对于 Ubuntu 18.04，可以直接安装：
 
@@ -423,7 +427,7 @@ gid 1003 1000
 # tom 用户的 home 目录
 ```
 
-## 添加一个 CUDA 的配置文件
+### 添加一个 CUDA 的配置文件
 
 ```shell
 # 创建名为 cuda 的配置文件
@@ -448,7 +452,7 @@ lxc profile add tom-container cuda
 ln -s /usr/local/cuda-10.0 /usr/local/cuda
 ```
 
-## 远程管理 LXD
+### 远程管理 LXD
 
 LXD 允许用户通过远程方式管理 LXD 容器．本地端和远程端均需安装 LXD．将本地端的证书 `~/.config/lxc/client.crt` 上传到服务器，然后使用将其添加：
 
@@ -484,7 +488,7 @@ Usage:
 
 我们只需要将 remote 替换为我们的远程服务端名称即可通过远程管理 LXD．若省略 `[<remote>:]` 则默认使用 `local:`，即管理本机上的 LXD．因为 `:` 被用作分隔符，建议不要在容器、镜像名称等中使用该符号，以免解析出错．
 
-## 利用 pylxd 查询容器信息
+### 利用 pylxd 查询容器信息
 
 考虑到如果有多台 GPU 设备，如果每个用户忘记了自己容器的 IP 都需要问管理员也太麻烦了．不才利用 LXD 提供的 python 包 [lxpyd](https://pylxd.readthedocs.io/en/latest/index.html) 结合 [cherrypy](https://cherrypy.org/) 写了一个简单的网页，用于查询各个宿主机上运行的 LXD 容器的信息．具体的代码托管在 [GitHub](https://github.com/hubutui/pylxd-webage) 上，并且可以打包为 Docker 镜像，该镜像已经上传到 [Docker Hub](https://hub.docker.com/r/butui/pylxd-webpage)．这个 Docker 镜像只提供了查询 LXD 容器的状态信息特别是 IP 地址的功能．实际上 pylxd 是提供了完整的管理功能的，有闲情雅致的管理员也可以在此基础上开发，方便自己管理容器．当然，目前 GitHub 上有一个轮子 [lxdui](https://github.com/AdaptiveScale/lxdui/) 提供了类似的功能，但是他并不支持管理远程管理，而且还要求本地安装好 LXD，限制蛮多的．如果本机就是 Linux 的话，安装一个 LXD 也很容易，然后用命令管理也不算太复杂的．
 
