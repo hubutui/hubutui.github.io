@@ -31,7 +31,7 @@ LXD 容器提供：
 3. 用户拥有容器内的全部控制权限，可以根据需要安装和修改容器内的一切东西，甚至可以自己根据需要重启容器内的系统而不影响其他用户的使用．比如安装各种版本的 cuda，更换桌面环境，安装其他软件，等等．在容器内的使用仍可参考群文件中的服务器使用指南，区别在于此时用户有最高权限．
 5. 用户在使用管理员提供的密码通过 Windows 远程桌面登录到自己的容器内的系统之后，必须修改密码．修改 VNC 密码请使用命令 `vncpasswd`，然后按照提示修改．修改用户密码请输入 `passwd`，然后按照提示修改．
 6. 使用 XRDP 的用户如果遇到 `/home/ubuntu/thinclient_drives` 无法正确挂载的问题，可以使用命令 `fusermount -u /home/ubuntu/thinclient_drives` 将其正确卸载即可．
-7. 容器内运行 `nvidia-smi` 只能看到 GPU 显存的使用情况，无法看到具体是哪一个进程在使用．这个是 Linux 内核 namespace 的限制，无解．
+7. 容器内运行 `nvidia-smi` 只能看到 GPU 显存的使用情况，无法看到具体是哪一个进程在使用．这个是 Linux 内核 namespace 的限制，无解．当然，如果管理员不嫌麻烦，在宿主机里运行一个 [nvgpu](https://github.com/rossumai/nvgpu)，也可以让用户通过网页查询该宿主机的 GPU 使用情况，包括是谁在运行．注意不要使用 Docker 来运行，Docker 有着同样的限制，在容器内运行的 nvgpu 也就无法得知是谁在使用 GPU．
 8. 用户的数据和代码等应该保存到 `/home/ubuntu/username`，其中 `username` 是你们的用户名，一般为姓名拼音小写．可以使用命令 `df -h` 查看磁盘信息：
 
 ```shell
@@ -147,7 +147,7 @@ sudo apt install -t xenial-backports lxd lxd-client
 sudo gpasswd -a $(whoami) lxd
 ```
 
-重新登录后生效，然后开始配置：
+**特别提示：将一个用户加入 lxd 组相当于给该用户 root 权限，请仅将唯一的管理员用户加入该组．顺便说一句，Docker 用的 docker 组也是这样的．别的教程都没有跟你说过这个吧？惊喜不惊喜？意外不意外？**等重新登录后生效，然后开始配置：
 
 ```shell
 Would you like to use LXD clustering? (yes/no) [default=no]: 
@@ -509,4 +509,5 @@ Usage:
 4. 我们还特地提供了一个 pylxd-webpage，供有需要的管理员和用户使用．Docker 镜像都已经上传到 Docker Hub 了，有需要的可以直接部署使用．虽然只是提供了 LXD 容器状态查询的功能，但是也是提供了一个可以借鉴的使用 pylxd 的思路．欢迎在此基础上进行开发．
 5. 共享目录这部分很多教程都语焉不详，本文特地讲得很啰嗦详细了．这个主要还是方便管理员的管理，跳过自然也是无妨的．
 6. 有人提到过不同版本的 CUDA 对编译器的不同要求么？有人好心的提供了多版本共存的 gcc/g++，并且提供了友好简单的设置么？本文独创．
+7. 有人好心告诉你把用户加入 lxd 组或者 docker 组就是给了该用户 root 权限么？没有吧？本文非常温馨地提示了这一点．
 
