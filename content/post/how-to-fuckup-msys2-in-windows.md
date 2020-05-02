@@ -15,7 +15,7 @@ MSYS2的魅力在于我们可以在Windows下获得类似Linux下的终端的生
 
 ## 如何使用
 
-其实这个没事好说的啊，软件包的管理需要用pacman，这个的用法可以参考ArchLinux的[wiki](https://wiki.archlinux.org/index.php/Pacman)，或者MSYS2的[https://www.msys2.org/wiki/Using-packages/](文档)。这里值得一提的是，MSYS2把软件仓库分为了msys2、mingw32和mingw64三个。其中msys2仓库中的软件包名字与Linux下对应的名字是一致的，除了部分MSYS2特有的包。mingw32仓库的软件包名字加了`mingw-w64-i686-`前缀，表示它是32位的软件包。类似的，mingw64仓库的软件包名字加了`mingw-w64-x86_64`，表示它是64位的软件包。当你给MSYS2打包一个新软件包或者开发一个新软件包的时候，你就需要考虑一下应该把它放到哪个仓库去了。msys2软件包是依赖于`msys-2.0.dll`的软件包，大部分时候你在Windows下用MSYS2开发的包都不属于这一类。原生的Windows程序不依赖`msys-2.0.dll`，他们一般是依赖Windows的`msvcrt.dll`。
+其实这个没事好说的啊，软件包的管理需要用pacman，这个的用法可以参考ArchLinux的[wiki](https://wiki.archlinux.org/index.php/Pacman)，或者MSYS2的[文档](https://www.msys2.org/wiki/Using-packages/)。这里值得一提的是，MSYS2把软件仓库分为了msys2、mingw32和mingw64三个。其中msys2仓库中的软件包名字与Linux下对应的名字是一致的，除了部分MSYS2特有的包。mingw32仓库的软件包名字加了`mingw-w64-i686-`前缀，表示它是32位的软件包。类似的，mingw64仓库的软件包名字加了`mingw-w64-x86_64`，表示它是64位的软件包。当你给MSYS2打包一个新软件包或者开发一个新软件包的时候，你就需要考虑一下应该把它放到哪个仓库去了。msys2软件包是依赖于`msys-2.0.dll`的软件包，大部分时候你在Windows下用MSYS2开发的包都不属于这一类。原生的Windows程序不依赖`msys-2.0.dll`，他们一般是依赖Windows的`msvcrt.dll`。
 
 msys2仓库中所有包的`PKGBUILD`文件托管在代码仓库[MSYS2-packages](https://github.com/msys2/MSYS2-packages)中，目前大约有500个包。而mingw32和mingw64仓库中所有包的`PKGBUILD`托管在代码仓库[MINGW-package](https://github.com/msys2/MINGW-packages)中，目前大约有1400个包。
 
