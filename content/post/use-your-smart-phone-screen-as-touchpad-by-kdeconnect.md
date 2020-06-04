@@ -59,7 +59,7 @@ KDE Connect 目前支持安卓手机和平板，苹果，Windows Phone 以及黑
 
 目前 KDE Connect 支持的特性如图所示：
 
-![KDE Connect](https://github.com/darcyhuu/darcyhuu.github.io/raw/master/img/KDE-Connect.png)
+![KDE Connect](/img/KDE-Connect.png)
 
 可以发现，目前来说，KDE Connect 支持手机与电脑共享剪切板，复制粘贴会变得很方便；在电脑上浏览手机的文件（需要 sshfs 支持）；发送和接受文件；互 ping 以检查是否连通；在手机上控制电脑端的媒体播放器，如 VLC 等；将手机屏幕当成触摸板来使用等等。 特别要说一下把手机屏幕当成触摸板这一点。手机上 KDE Connect 点开 Open touchpad control 即可把手机屏幕当成触摸板来使用。实测发现其支持单击，双击，三击，双指滑动等常用的操作，使用起来也非常的灵敏流畅。 至于互传文件，手机上选中需要发送的文件，然后分享/发送，选择 KDE Connect，即可发送文件到电脑；而电脑端发送文件也只需要选中文件，右键，选择 Send to '手机名称' via KDE Connect，非常的简单。在电脑上浏览手机的文件则只需要安装好 sshfs，然后打开 dolphin，左边的位置那里就有你的手机，直接点开就可以浏览手机上的文件了。 新的特性还在不断的完善之中，相信 KDE Connect 会越来越用的说。 
 
