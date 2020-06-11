@@ -171,6 +171,10 @@ plt.show()
 
 可以看到，opencv 与 vlfeat 提取到的特征点的数量不同，具体的特征点也有所不同，最后提取到的 sift 特征也有区别。这主要是两者在实现上的差异。具体的细节可能需要去阅读他们的源码才能了解了。
 
+## 更新（20200611）
+
+最近给 cyvlfeat 做了一点微小的贡献，把一个贡献者提交的代码进行了一些修改和补充，把 vlfeat 中的 vlad, phow, flatmap, quickshift 等函数的 Python 绑定都提供出来了。感觉应该需要把 kdtree 的接口也提供一下的，毕竟 vlad 应该是用得上这个的。但是 cython 真的挺不好写啊，或者还是自己水平有限，无法理解。也许可以用 scikit-learn 中的函数替代，有空可以看看。
+
 ## 参考
 
 1. https://www.vlfeat.org/overview/sift.html
