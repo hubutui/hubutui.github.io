@@ -27,8 +27,8 @@ $$
 对应到窗口化，这实际上是是一个分段线性变换：
 $$
 r = \begin{cases} 
-	0, & s < y_\mathrm{min} \\
-	\dfrac{1}{y_\mathrm{w}}s + y_\mathrm{min} & y_\mathrm{min} \leq s \leq y_\mathrm{max} \\
+	0, & s < y_\mathrm{min} \newline
+	\dfrac{1}{y_\mathrm{w}}s + y_\mathrm{min}, & y_\mathrm{min} \leq s \leq y_\mathrm{max} \newline
 	1, & s > y_\mathrm{max}
 \end{cases}
 $$
