@@ -18,19 +18,19 @@ install.packages("pkgname")
 
 R 语言用户比较熟悉的应该是 [CRAN](https://cran.r-project.org/)，它有点类似于 Python 的 [PyPI](https://pypi.org/)，提供了大量的 R 语言的包．但是，编译安装 R 语言包并不是一件轻而易举的事情，特别是当你的 R 包需要系统提供一些依赖的时候．
 
-实际上，如果我们能用 conda 来创建和管理 R 语言的环境，其实会更加轻松很多．首先，我们创建一个 R 语言的虚拟环境：
+实际上，如果我们能用 conda 来创建和管理 R 语言的环境，其实会更加轻松很多．Anaconda 中的 R 语言包主要由 conda-forge, r, bioconda 三个 channel 提供．其中 r channel 提供的 R 版本目前最新只有 3.6，需要使用 4.0 版本的建议使用 conda-forge．首先，我们创建一个 R 语言的虚拟环境：
 
 ```shell
-conda create -n r-env -c r r-base r-essentials
+conda create -n r-env -c conda-forge
 ```
 
 对于需要安装的 R 包，我们大部分使用可以通过以下命令来安装：
 
 ```shell
-conda install -c r r-pkgname
+conda install -c conda-forge r-pkgname
 ```
 
-其中 `pkgname` 是 R 包在 CRAN 里的名字．如果 anaconda 的源没有提供这个包，我们还可以使用传统的方法，即启动 R 命令行，然后使用 `install.packages("pkgname")` 来安装，它会安装到你的 conda 环境目录下．如果有疑问，你可以检查一下 `libPaths`，在 R 命令行中使用：
+其中 `pkgname` 是 R 包在 CRAN 里的名字．一般用户可以先去 anaconda 网页上搜索看是否有所需的包．如果 anaconda 的源没有提供这个包，我们还可以使用传统的方法，即启动 R 命令行，然后使用 `install.packages("pkgname")` 来安装，它会安装到你的 conda 环境目录下．如果有疑问，你可以检查一下 `libPaths`，在 R 命令行中使用：
 
 ```R
 .libPaths()
