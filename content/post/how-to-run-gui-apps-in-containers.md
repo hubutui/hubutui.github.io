@@ -36,6 +36,8 @@ Podman 和 Docker 理论上是兼容的，不多说。
 
 在桌面环境的选择上，一般首推 Xfce4，其次是 LXDE，LXQt 等桌面，GNOME 和 KDE 一般不建议使用，因为不一定能用，而且即使能用也会很麻烦。
 
+这里给出一个完整的 Docker 例子，详见此[项目](https://github.com/hubutui/docker-headless-vnc-container)。
+
 ## 使用 xrdp
 
 [xrdp](http://xrdp.org)  也是一种可选的远程桌面解决方案。与 Linux 上我们常用的 VNC 不同，xrdp 使用的是开源的 RDP 协议实现。RDP 协议实际上就是 Windows 的远程桌面所使用的协议。采用此方案的优点是对 Windows 用户更加友好，这回连客户端都不需要安装了，直接使用 Windows 远程桌面去连接即可。
