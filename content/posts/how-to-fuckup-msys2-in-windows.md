@@ -15,13 +15,13 @@ MSYS2的魅力在于我们可以在Windows下获得类似Linux下的终端的生
 
 ## 如何使用
 
-其实这个没事好说的啊，软件包的管理需要用pacman，这个的用法可以参考ArchLinux的[wiki](https://wiki.archlinux.org/index.php/Pacman)，或者MSYS2的[文档](https://www.msys2.org/wiki/Using-packages/)。这里值得一提的是，MSYS2把软件仓库分为了msys2、mingw32和mingw64三个。其中msys2仓库中的软件包名字与Linux下对应的名字是一致的，除了部分MSYS2特有的包。mingw32仓库的软件包名字加了`mingw-w64-i686-`前缀，表示它是32位的软件包。类似的，mingw64仓库的软件包名字加了`mingw-w64-x86_64`，表示它是64位的软件包。当你给MSYS2打包一个新软件包或者开发一个新软件包的时候，你就需要考虑一下应该把它放到哪个仓库去了。msys2软件包是依赖于`msys-2.0.dll`的软件包，大部分时候你在Windows下用MSYS2开发的包都不属于这一类。原生的Windows程序不依赖`msys-2.0.dll`，他们一般是依赖Windows的`msvcrt.dll`。
+其实这个没啥好说的啊，软件包的管理需要用pacman，这个的用法可以参考ArchLinux的[wiki](https://wiki.archlinux.org/index.php/Pacman)，或者MSYS2的[文档](https://www.msys2.org/wiki/Using-packages/)。这里值得一提的是，MSYS2把自己分为了多个环境/子系统，即MSYS，MINGW64，UCRT64，CLANG64，MINGW32，CLANG32。这些子环境之间的区别可以查看官方文档的[介绍](https://www.msys2.org/docs/environments/)。当你给MSYS2打包一个新软件包或者开发一个新软件包的时候，你就需要考虑一下应该把它放到哪个子系统去了。一般的，没有特别的需求，我们开发的软件应该是放到MINGW64子系统去。
 
-msys2仓库中所有包的`PKGBUILD`文件托管在代码仓库[MSYS2-packages](https://github.com/msys2/MSYS2-packages)中，目前大约有500个包。而mingw32和mingw64仓库中所有包的`PKGBUILD`托管在代码仓库[MINGW-package](https://github.com/msys2/MINGW-packages)中，目前大约有1400个包。
+MSYS子系统中所有包的`PKGBUILD`文件托管在代码仓库[MSYS2-packages](https://github.com/msys2/MSYS2-packages)中，目前大约有500个包。而其他包的`PKGBUILD`托管在代码仓库[MINGW-package](https://github.com/msys2/MINGW-packages)中，目前大约有1400个包。
 
 ## 更换默认的SHELL为zsh
 
-这个其实不难，只是有一个点网上搜来的东西都没说得太清楚。首先，你需要安装`zsh`和`msys2-launcher-git`。然后需要在配置文件`/msys2.ini`、`/mingw64.ini`和`/mingw32.ini`中加入下面这句：
+这个其实不难，只是有一个点网上搜来的东西都没说得太清楚。首先，你需要安装`zsh`和`msys2-launcher`。然后需要在配置文件`/msys2.ini`、`/mingw64.ini`和`/mingw32.ini`中加入下面这句：
 
 ```
 SHELL=/usr/bin/zsh
@@ -38,6 +38,17 @@ SHELL=/usr/bin/zsh
 1. 使用msys终端（`msys2.exe`）而非64bit终端（`mingw64.exe`或`mingw32.exe`）来执行打包命令 `makepkg`和`makepkg-mingw`。`makepkg`用于创建msys软件包，而`makepkg-mingw`则打包mingw64和mingw32的原生Windows软件包。
 2. 你在`PKGBUILD`中看到的一些特殊的变量，如`MINGW_PREFIX`、`MINGW_PACKAGE_PREFIX`之类的，它们的定义保存在`/etc/makepkg.conf`、`/etc/makepkg_mingw64.conf`和`/etc/makepkg_mingw32.conf`这三个文件中。其意思参考`PKGBUILD`中的用法和它的定义应该可以很容易理解。
 3. 当然，打包的工具链的话，你至少需要`base-devel`、`msys2-devel`（msys2包）、`mingw-w64-i686-toolchain`（mingw32包）和`mingw-w64-x86_64-toolchain`（mingw64包）。
+
+## 软件开发
+
+假设你要开发Qt程序，可以直接安装Qt相关的包，包括：
+
+```text
+mingw-w64-x86_64-qt5
+mingw-w64-x86_64-qt-creator
+```
+
+安装完毕之后，你可以直接到MSYS2安装目录下的`mingw64/bin`找到Qt Cretor和Qt Designer等开发Qt常用的工具并启动，即可开始进行具体的代码开发了。
 
 ### 部署和分发
 
