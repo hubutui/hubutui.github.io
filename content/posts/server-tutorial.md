@@ -47,7 +47,7 @@ sftp://172.21.126.221
 
 * 优点：可以直接使用 Windows 的远程桌面连接，支持双向剪贴板，支持驱动器映射．
 * 缺点：RDP 协议不开源，xrdp 本身也有不少 bug，本身还在不断地开发之中．
-* Note: 如果遇到文件管理器无法打开或者 `thinclient_drives` 目录权限错误的问题，你可以想要看看这篇[文章](https://butui.me/post/little-issue-about-xrdp/)．
+* Note: 如果遇到文件管理器无法打开或者 `thinclient_drives` 目录权限错误的问题，你可以想要看看这篇[文章](/posts/little-issue-about-xrdp/)．
 
 ### Virtual Network Computing (VNC)
 
