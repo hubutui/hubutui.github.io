@@ -1,9 +1,9 @@
 ---
-title: "XRPD 相关的一个小问题——关于 `thinclient_drives` 目录的错误"
+title: "XRDP 相关的一个小问题——关于 `thinclient_drives` 目录的错误"
 date: 2018-01-16T00:00:00+08:00
 ---
 
-关于 [XRPD](http://www.xrdp.org) 是什么，我就不废话了．它会在远程 Linux 主机的用户家目录下创建一个 `thinclient_drives` 目录，用于驱动器的映射．这个目录实际上应该是用 `fuse` 挂载的．但是有的时候会遇到该目录的权限错误，如下：
+关于 [XRDP](http://www.xrdp.org) 是什么，我就不废话了．它会在远程 Linux 主机的用户家目录下创建一个 `thinclient_drives` 目录，用于驱动器的映射．这个目录实际上应该是用 `fuse` 挂载的．但是有的时候会遇到该目录的权限错误，如下：
 
 ```text
 d????????? ? ?        ?         ?             ? thinclient_drives/
