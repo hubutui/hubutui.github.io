@@ -29,10 +29,12 @@ OpenCV: FFMPEG: tag 0x34363268/'h264' is not supported with codec id 27 and form
 ```bash
 conda create -n opencv python=3.10 -y
 conda activate opencv
-conda install opencv -y
+conda install opencv!=4.6 -y
 # 也可以从 conda-forge 安装，应该是一样的
-# conda install opencv -y -c conda-forge
+# conda install opencv!=4.6 -y -c conda-forge
 ```
+
+这里再特别说明一下，不安装 opencv 4.6.x 版本是因为该版本有一个 [bug](https://github.com/opencv/opencv/issues/22088) 会导致读取元信息中包含旋转的视频的时候会出错．就本文写作的时间，这个实际安装的版本就是 4.5.5 版本，同时又因为 4.5.5 版本最高只为 python 3.10 打包，所以这里创建的环境是 python 3.10 的．
 
 按理说，到这里就应该是解决了问题了．但是有一些包在写依赖的时候指明了依赖 opencv-contrib-python，这个包是来自 PyPI 的．如果你使用 pip 命令安装一些包的时候不小心把这个包作为依赖安装进来了，就有可能导致你在使用 `cv2.VideoWriter` 的时候实际上使用的是 opencv-contrib-python，而非 Anaconda 中的 opencv，而前者是不带 H264 编解码器支持的．最终导致你命名安装了 Anaconda 的 opencv，但是依然出错．
 
