@@ -52,11 +52,11 @@ pip uninstall opencv-contrib-python
 2. 确认好依赖 opencv-contrib-python 的包，例如 mediapipe，然后使用 `pip install --no-deps mediapipe` 安装 mediapipe，但是不安装他的依赖包．接着使用 conda 安装 opencv．最后再根据代码实际运行时候的 Import 错误提示来安装其他包．这里也可以使用 `pip show mediapipe` 命令查看这个包的依赖，然后手动安装其中除了 opencv-contrib-python 之外的包．
 3. 如果你需要安装的包编译比较简单，也可以下载源码，修改其依赖关系，然后编译安装．
 4. 对提供二进制 wheel 文件的，你还可以将其 wheel 文件下载之后修改其中的依赖关系文件重新打包，然后手动安装重新打包的 wheel 文件．
-  1. 下载这个 wheel 文件，但是不下载他的依赖包，`pip download --no-deps mediapipe`．
-  2. 解压 wheel 文件，`wheel unpack FILENAME`．
-  3. 编辑 `METADATA`，删除依赖 opencv 的行．
-  4. 重新打包 wheel 文件，`wheel pack WHL-DIR`．
-  5. 最后使用 `pip instsall FILENAME` 安装即可．此时就不会再去安装 opencv 这个依赖．
+  4.1. 下载这个 wheel 文件，但是不下载他的依赖包，`pip download --no-deps mediapipe`．
+  4.2. 解压 wheel 文件，`wheel unpack FILENAME`．
+  4.3. 编辑 `METADATA`，删除依赖 opencv 的行．
+  4.4. 重新打包 wheel 文件，`wheel pack WHL-DIR`．
+  4.5. 最后使用 `pip instsall FILENAME` 安装即可．此时就不会再去安装 opencv 这个依赖．
 
 以上的这些解决方案都不能算是完美，毕竟在 conda 虚拟环境中使用 pip，相当于是在混用 conda 和 pip 两个包管理工具，难免会出现不兼容的问题．
 
