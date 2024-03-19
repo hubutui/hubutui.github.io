@@ -148,7 +148,29 @@ openslide.vendor: 'generic-tiff'
 tiff.ResolutionUnit: 'inch'
 ```
 
-可以看到 `identify` 命令已经确认这个是一个金字塔图像，但是 openslide 只能识别到金字塔的一层．根据 [issue 4464](https://github.com/ImageMagick/ImageMagick/issues/4464)，这可能是 imagemagick 的一个 bug．
+可以看到 `identify` 命令已经确认这个是一个金字塔图像，但是 openslide 只能识别到金字塔的一层．根据 [issue 4464](https://github.com/ImageMagick/ImageMagick/issues/4464)，实际上我们少写了一个选项参数，并且这个也没有写在[文档](https://imagemagick.org/script/defines.php)里．我们只需要加上 `-define tiff:subfiletype=reducedimage` 即可，这里的 `reducedimage` 不区分大小写．
+
+```bash
+convert astronaut.png -compress lzw -define tiff:tile-geometry=256x256 -define ptif:pyramid=256x2 -define tiff:subfiletype=reducedimage ptif:astronaut.4.tif
+
+openslide-show-properties astronaut.4.tif 
+openslide.level-count: '2'
+openslide.level[0].downsample: '1'
+openslide.level[0].height: '512'
+openslide.level[0].tile-height: '256'
+openslide.level[0].tile-width: '256'
+openslide.level[0].width: '512'
+openslide.level[1].downsample: '2'
+openslide.level[1].height: '256'
+openslide.level[1].tile-height: '256'
+openslide.level[1].tile-width: '256'
+openslide.level[1].width: '256'
+openslide.quickhash-1: '59f9a5905f9a26f9739ba5a53c14e95e1db4abb4c22c3146661b6801a0515a25'
+openslide.vendor: 'generic-tiff'
+tiff.ResolutionUnit: 'inch'
+```
+
+可以看到，openslide 这次可以正确识别到转换出来的图像金字塔的不同层级了．
 
 要创建 tiled pyramid tiff，我们还可以使用 [libvips](https://github.com/libvips/libvips)．他提供有命令行工具以及 Python 包．简单起见，我们这里直接使用 vips 的命令行工具．转换命令如下：
 
