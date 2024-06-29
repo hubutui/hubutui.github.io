@@ -204,5 +204,6 @@ mlx5_3 port 1 ==> ib1 (Up)
 以下是本文的一些重要参考资料来源，有兴趣的可以看看．
 
 1. [sbatch doc](https://slurm.schedmd.com/sbatch.html)：需要用到的 SLURM 相关的环境变量这里都有．
-2. [nccl doc](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)：NCCL 调试相关的环境变量可以参考这里．
+2. [NCCL doc](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)：NCCL 调试相关的环境变量可以参考这里．
 3. [Fine-tuning Llama 2 70B using PyTorch FSDP](https://huggingface.co/blog/ram-efficient-pytorch-fsdp)：这里提供了一个使用 accelerate 训练的参考，他的 slurm sbatch 脚本也可以参考．
+4. [如何理解 Nvidia 英伟达的 Multi-GPU 多卡通信框架 NCCL](https://www.zhihu.com/answer/3487108775)：这个知乎回答也值得看看．
