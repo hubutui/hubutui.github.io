@@ -81,7 +81,7 @@ accelerate launch \
 
 以 PyTorch 官方提供了一个 minGPT-ddp 例子，这个例子足够小，可以在 RTX 2080 显卡上跑起来．完整的源码在 [pytorch-examples](https://github.com/hubutui/pytorch-examples)．将其 clone 下来之后，修改 `distributed/minGPT-ddp/mingpt/slurm/job.sh` 文件里的设置，然后使用 `sbatch job.sh` 命令提交即可．这里只需要根据具体使用的 slurm 集群的情况，修改其中的计费账户 account 和使用的分区 partition，应该就可以了．其他的脚本也可以参考此模板来创建 slurm sbatch 脚本．
 
-我在一个 slurm 集群上的 2 个 A100 节点进行了测试，完整的测试命令见 [run.sh](https://github.com/hubutui/pytorch-examples/blob/main/distributed/minGPT-ddp/mingpt/slurm/run.sh)，输出日志见 [logs](https://github.com/hubutui/pytorch-examples/tree/main/distributed/minGPT-ddp/mingpt/slurm/logs) 下的文件．
+我在一个 slurm 集群上的 2 个 A800 节点进行了测试，完整的测试命令见 [run.sh](https://github.com/hubutui/pytorch-examples/blob/main/distributed/minGPT-ddp/mingpt/slurm/run.sh)，输出日志见 [logs](https://github.com/hubutui/pytorch-examples/tree/main/distributed/minGPT-ddp/mingpt/slurm/logs) 下的文件．
 
 即使不使用 slurm 集群，上面的脚本本身也是有效的 bash 脚本，简单修改一下，也可以直接执行：
 
