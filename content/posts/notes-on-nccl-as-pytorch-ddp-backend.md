@@ -43,7 +43,7 @@ torchrun \
 2. `--nproc-per-node`：每个节点上的任务数量，一个 GPU 一个任务，实际上也就是每个节点上的 GPU 数量．
 3. `--rdzv_backend`：rdzv 后端，一般用 c10d．
 4. `--rdzv_endpoint`：master 节点的 rdzv 服务地址．分布式训练的每个计算节点会通过这个地址进行通信，并且根据 `rdzv_id` 来标识他们属于同一组作业．
-5. `--rdzv_id`：`rdzv_id` 用于标识一个唯一的分布式训练，你可以在相同的机器上启动多个分布式训练实验，只要他们的 ID 不同．
+5. `--rdzv_id`：`rdzv_id` 用于标识一个唯一的分布式训练，你可以在相同的机器上启动多个分布式训练实验，只要他们的 ID 不同．所以一般在 SLURM 集群上，我们会使用 SLURM_JOB_ID 作为这个 ID．
 
 ### accelerate
 
@@ -197,7 +197,26 @@ mlx5_3 port 1 ==> ib1 (Up)
 
 ## 使用 LLaMa Factory 训练 LLM
 
-这里其实没有什么好说的了，直接参看上文提到的 slurm sbatch 脚本即可，只需修改对应的 python 脚本和对应的选项参数即可．
+这里其实没有什么好说的了，直接参看上文提到的 slurm sbatch 脚本即可，只需修改对应的 python 脚本和对应的选项参数即可．简单快捷的说明，大概改成：
+
+```bash
+torchrun \
+    --nnodes $SLURM_NNODES \
+    --nproc_per_node $SLURM_GPUS_PER_NODE \
+    --rdzv_backend c10d \
+    --rdzv_endpoint $MASTER_ADDR:$MASTER_PORT \
+    --rdzv_id $SLURM_JOB_ID \
+    llama_factory_dir/src/train.py args...
+```
+
+旧版本的 llama factory 的 `train.py` 脚本为 `train_bash.py`，请根据情况修改．另外，新版本的 llama factory 建议使用 `llamafactory-cli` 命令来启动训练，具体的多节点训练命令如下：
+
+```bash
+FORCE_TORCHRUN=1 NNODES=2 RANK=0 MASTER_ADDR=192.168.0.1 MASTER_PORT=29500 llamafactory-cli train examples/train_lora/llama3_lora_sft.yaml
+FORCE_TORCHRUN=1 NNODES=2 RANK=1 MASTER_ADDR=192.168.0.1 MASTER_PORT=29500 llamafactory-cli train examples/train_lora/llama3_lora_sft.yaml
+```
+
+其中的 yaml 文件仅仅是把 `train.py` 的选项参数写到配置文件而已．详细见[此处](https://github.com/hiyouga/LLaMA-Factory/tree/v0.9.0/examples#supervised-fine-tuning-on-multiple-nodes)．个人实际测试多卡训练并不能启动，会一直卡住，分析原因在于 llama factory 没有使用 rdzv，详见此处[代码](https://github.com/hiyouga/LLaMA-Factory/blob/90d6df622252c6fad985f68b97771c979357e2fc/src/llamafactory/cli.py#L94-L108)．只需要修改此处的代码为使用 rdzv 的形式即可．
 
 ## 参考
 
