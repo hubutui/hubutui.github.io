@@ -16,7 +16,7 @@ tags:
 
 ## 简介
 
-我自己有一个域名，也就是本站．然后我还有一台有公网 IP 的服务器，上面运行了各种服务，有一些是可以通过网页访问的．但是我暂时都没有给这些网页服务绑定一个域名．为了方便使用，我可以用我自己的这个域名的子域名来绑定一下，方便我自己访问，就不用每次都使用 http://IP:port 的形式来访问了．此外，我还可以白嫖一下 Cloudflare 的服务，加上 HTTPS 访问．
+我自己有一个域名，也就是本站．然后我还有一台有公网 IP 的服务器，上面运行了各种服务，有一些是可以通过网页访问的．但是我暂时都没有给这些网页服务绑定一个域名．为了方便使用，我可以用我自己的这个域名的子域名来绑定一下，方便我自己访问，就不用每次都使用 `http://IP:port` 的形式来访问了．此外，我还可以白嫖一下 Cloudflare 的服务，加上 HTTPS 访问．
 
 ## 前情提要
 
@@ -28,21 +28,21 @@ tags:
 
 为了方便描述，下面先列出一些假设：
 
-1. 我的公网服务器 IP 为：1.1.1.1．
-2. 我在公网服务器上部署了一个网页服务，可以通过 http://1.1.1.1:8080 访问到．
-3. 我的域名为 example.org．
-4. 我现在想要直接通过 https://web.example.org:8081 或者 http://web.example.org:8081 访问到 http://1.1.1.1:8080 的服务．
+1. 我的公网服务器 IP 为：`1.1.1.1`．
+2. 我在公网服务器上部署了一个网页服务，可以通过 `http://1.1.1.1:8080` 访问到．
+3. 我的域名为 `example.org`．
+4. 我现在想要直接通过 `https://web.example.org:8081` 或者 `http://web.example.org:8081` 访问到 `http://1.1.1.1:8080` 的服务．
 
-这里我们可以通过在服务器 1.1.1.1 上使用 Nginx 反向代理，监听 8081 端口，将来自 web.example.org 的请求转发给 http://1.1.1.1:8080，即可完成任务．
+这里我们可以通过在服务器 `1.1.1.1` 上使用 Nginx 反向代理，监听 8081 端口，将来自 `web.example.org` 的请求转发给 `http://1.1.1.1:8080`，即可完成任务．
 
 具体的，Cloudflare 的设置需要：
 
-1. 在 Cloudflare 的 DNS 设置添加 A 记录，将 web.example.org 解析到 1.1.1.1，并勾选 proxy 选项．勾选 proxy 选项表示使用 Cloudflare 的 CDN 服务，不勾选则表示仅仅做 DNS 解析．我们想要白嫖 Cloudflare 的 CDN，且用上 HTTPS，所以这里要勾选．
+1. 在 Cloudflare 的 DNS 设置添加 A 记录，将 `web.example.org` 解析到 `1.1.1.1`，并勾选 proxy 选项．勾选 proxy 选项表示使用 Cloudflare 的 CDN 服务，不勾选则表示仅仅做 DNS 解析．我们想要白嫖 Cloudflare 的 CDN，且用上 HTTPS，所以这里要勾选．
 2. 打开 Cloudflare 的 SSL/TLS->Origin Server，生成一个证书，颁发给 `*.example.org` 和 `example.org`．这个证书仅仅用于服务器 1.1.1.1 和 Cloudflare 之间的通信，有效期选择 15 年，免得更换．这里按照提示保存得到两个文件，分别记作 `example.org.key` 和 `example.org.pem`．
 3. 检查一下 cloudfalre SSL/TLS 设置 encryption mode 为 flexible 或者 full．这个一般都是 ok 的．
-4. 检查一下 Cloudflare 里 SSL/TLS 的 Edge Certificates 开启 Always Use HTTPS。这个选项是为了使用 Cloudflare 的 CDN 服务的时候，用户访问 http://web.example.org:8081 会自动跳转到 https://web.example.org:8081．这个选项一般也是已经开启了的．
+4. 检查一下 Cloudflare 里 SSL/TLS 的 Edge Certificates 开启 Always Use HTTPS。这个选项是为了使用 Cloudflare 的 CDN 服务的时候，用户访问 `http://web.example.org:8081` 会自动跳转到 `https://web.example.org:8081`．这个选项一般也是已经开启了的．
 
-1.1.1.1 服务器上的设置：
+`1.1.1.1` 服务器上的设置：
 
 1. 这里我们使用 docker compose 来启动 Nginx 服务，Nginx 配置文件 `proxy.conf` 内容如下：
 
@@ -115,9 +115,9 @@ services:
 
 具体的，假设我们想要使用 `http://vip.example.org:8091` 访问 `http://1.1.1.1:8090`，Cloudflare 的配置：
 
-1. 在 Cloudflare 的 DNS 设置添加 A 记录，将 web2.example.org 解析到 1.1.1.1，并且取消勾选 proxy 选项．这里我们只需要做 DNS 解析．
+1. 在 Cloudflare 的 DNS 设置添加 A 记录，将 `vip.example.org` 解析到 `1.1.1.1`，并且取消勾选 proxy 选项．这里我们只需要做 DNS 解析．
 
-1.1.1.1 服务器上的设置：
+`1.1.1.1` 服务器上的设置：
 
 1. Nginx 配置文件 `proxy.conf` 新增一个 server 块：
 
@@ -163,4 +163,4 @@ services:
 
 ## 补充
 
-关于公网服务网 `1.1.1.1` 的端口，如果你的 80 和 443 端口可以使用，那就可以不用非标端口 `8091` 和 `8081`．这样用户访问的域名后面也就不用加上端口了．不过如果你的服务器在国内的话，一般 80 和 443 端口都是被云服务商的防火墙挡住的，必须备案后才能使用．有的云服务上即使你使用了非标端口，如果域名没有备案，也是不允许通过域名访问的，但是并不限制通过 IP 加端口的方式来访问．此时，你只需要删掉 Nginx 配置文件中的 `proxy_set_header Host $remote_addr;` 即可．也就是不在请求头里设置 `Host` 为你的域名，云服务上就不知道你这个请求是从一个域名解析过来的，然后就放行了．
+关于公网服务网 `1.1.1.1` 的端口，如果你的 80 和 443 端口可以使用，那就可以不用非标端口 `8091` 和 `8081`．这样用户访问的域名后面也就不用加上端口了．不过如果你的服务器在国内的话，一般 80 和 443 端口都是被云服务商的防火墙挡住的，必须备案后才能使用．有的云服务上即使你使用了非标端口，如果域名没有备案，也是不允许通过域名访问的，但是并不限制通过 IP 加端口的方式来访问．此时，你只需要删掉 Nginx 配置文件中的 `proxy_set_header Host $remote_addr;` 即可．也就是不在请求头里设置 `Host` 为你的域名，云服务商就不知道你这个请求是从一个域名解析过来的，然后就放行了．
