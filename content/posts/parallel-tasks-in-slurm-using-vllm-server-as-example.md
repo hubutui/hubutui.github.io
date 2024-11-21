@@ -1,6 +1,6 @@
 ---
 title: "如何灵活地在 slurm 集群中启动并行任务，以 vllm server 为例"
-date: 2024-11-06T00:00:00+08:00
+date: 2024-11-21T00:00:00+08:00
 toc: false
 images:
 tags:
