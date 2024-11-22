@@ -87,15 +87,15 @@ python start.py --model-name your-model-name --model-path model-path --concurren
 
 `start.py` 文件是一个用来启动 vllm server，caddy 反向代理服务和 `request.py` 的脚本．大致的内容如下：
 
-```bash
-#!/bin/bash
+```python
+#!/usr/bin/env python3
 #
-# 评测任务的启动脚本
-# 基本思路，使用 srun 命令分配 vllm serve 任务到每个计算节点的 GPU 上，每个 GPU 一个 vllm server
+# 启动脚本
+# 基本思路，使用 srun 命令分配任务到每个计算节点的 GPU 上，每个 GPU 一个 vllm server 服务
 # 然后使用 caddy 反向代理提供统一的请求入口
 # 睡眠一段时间，等待 vllm server 就绪
-# 然后启动评测脚本发起请求进行评测
-# 最后评测脚本执行完毕退出
+# 然后启动脚本发起请求
+# 最后脚本执行完毕退出
 #
 import argparse
 import os
