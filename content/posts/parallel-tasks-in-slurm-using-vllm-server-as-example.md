@@ -17,10 +17,106 @@ tags:
 
 本文介绍如何在 slurm 集群中启动并行的任务，并以 vllm server 为例．这里例子具体地说，是要在集群中使用多个节点启动 vllm server 服务，提供 openai 兼容的 API 接口，然后使用高并发的 HTTP 请求去处理数据．
 
-## 简单介绍一下 slurm 中的几个概念
+## 介绍一下 slurm 中的几个概念
 
 先约定一下一些概念，slurm 中我们一般会写一个 sbatch 脚本，然后用 sbatch 命令提交作业（job）去排队，等待集群有满足的资源的时候自动执行，执行完毕就自动退出并释放资源．
-在 sbatch 脚本中，我们一般会申请多个节点的资源，并使用 srun 命令将任务（或者称作作业步 job step）分配到各个节点去执行．这里的作业步就是可以并行运行的．
+在 sbatch 脚本中，我们一般会申请多个节点的资源，并使用 srun 命令去启动串行或者并行的作业步（job step），作业步可以包括多个任务（task）．任务是 slurm 中进行资源分配何调度的最小单元．关于这几个概念，stackoverflow 上的这个[答案](https://stackoverflow.com/questions/46506784/how-do-the-terms-job-task-and-step-relate-to-each-other)很值得参考．
+
+### 一些例子
+
+首先看这个简单的例子，他只指定了计费账号和需要申请的分区，这是一个典型的串行作业．由于这里，我们只申请了一个节点，不管是否使用 `srun` 命令去启动这个作业步，都是在申请到的唯一一个节点上执行，直接写两个 `hostname` 命令，效果是等价的．
+
+```bash
+#!/bin/bash
+#SBATCH --account account-name
+#SBATCH --partition p-cpu
+
+srun --label hostname
+srun --label hostname
+```
+
+上面这个作业的输出日志如下：
+
+```text
+0: pcpu01
+0: pcpu01
+```
+
+可以看到这两个作业步是先后串行执行的．这里我们还用了 `srun --label` 选项，会给日志加上任务序号的前缀．由于 `srun` 启动的这个作业步只有一个任务，所以都是显示的 `0:`．
+
+如果没有使用 `srun`，输出如下：
+
+```text
+pcpu01
+pcpu01
+```
+
+没有什么特殊的．
+
+下面，我们修改这个 sbatch 脚本，改成并行的．
+
+```bash
+#!/bin/bash
+#SBATCH --account account-name
+#SBATCH --partition p-cpu
+
+srun --label hostname &
+srun --label  hostname &
+wait
+```
+
+这里，我们只需要在每个 `srun` 命令最后加上一个 `&`，即可把命令放到后台去执行，最后我们还要用 `wait` 命令来等待后台命令全部执行完毕．日志输出如下：
+
+```text
+0: pcpu01
+srun: Job 205912 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 205912
+0: pcpu01
+```
+
+注意到这里的提示，有说 job step 创建失败，因为请求的节点忙碌．这是因为这里我们实际上只申请了一个 CPU，而创建一个作业步至少需要一个 CPU，第二个作业步在创建的时候，申请的 CPU 资源已经被全部用完了，因为无法创建成功．好在 `hostname` 命令很快就执行完毕了，srun 重试之后就成功了．
+
+要真正的允许这两个作业步并行，我们可以使用 `--overlap` 选项．
+
+```bash
+#!/bin/bash
+#SBATCH --account account-name
+#SBATCH --partition p-cpu
+
+srun --label --overlap hostname &
+srun --label --overlap  hostname &
+wait
+```
+
+此时日志输出：
+
+```text
+0: pcpu01
+0: pcpu01
+```
+
+这就正常了．此外，还可以申请更多的资源．
+
+```bash
+#!/bin/bash
+#SBATCH --account account-name
+#SBATCH --partition p-cpu
+#SBATCH --cpus-per-task 1
+#SBATCH --nodes 2
+
+srun --label --nodes 1 hostname &
+srun --label --nodes 1 hostname &
+wait
+```
+
+这里，我们申请了 2 个节点，然后在使用 `srun` 命令的时候，一个作业步只申请了 1 节点，正好可以 2 个作业步并行．结果输出：
+
+```text
+0: pcpu01
+0: pcpu02
+```
+
+如果需要申请 GPU 资源，只需要额外增加 `--cpus-per-gpu` 和 `--gpus-per-node` 即可，囿于篇幅，这里不再赘述．具体的可以看下文的实际例子．
 
 ## vllm server
 
@@ -213,24 +309,12 @@ if __name__ == "__main__":
                     "lm-format-enforcer",
                     "--disable-log-requests",
                 ]
-                # 注意：
-                # 1. 这里要使用 --overlap 选项，否则不会成功启动并行的 vllm server
-                # 2. 这里指定要使用的节点数量为 1，即 --nodes=1
-                # 3. 这里要指定要使用的节点，即 --nodelist 选项
-                # 4. 这里指定启动的任务数量为 1，即 --tasks 1
-                # 5. 这里指定要使用的 gpu 数量，即 --gpus-per-node。这样就保证启动的任务会分配到一个 GPU，不需要我们自己设置环境变量 CUDA_VISIBLE_DEVICES
-                # 6. --cpus-per-gpu 还是继承 sbatch 的设置即可
                 cmd = [
                     "srun",
-                    "--label",
                     "--overlap",
                     "--gpus-per-node",
                     "1",
-                    "--cpus-per-gpu",
-                    f"{cpus_per_gpu}",
                     "--nodes",
-                    "1",
-                    "--tasks",
                     "1",
                     "--nodelist",
                     f"{node}",
@@ -329,6 +413,26 @@ if __name__ == "__main__":
                 logger.info(f"关闭文件{f}")
                 f.close()
 ```
+
+特别注意其中的 srun 命令时如何试用的：
+
+```bash
+cmd = [
+    "srun",
+    "--overlap",
+    "--gpus-per-node",
+    "1",
+    "--nodes",
+    "1",
+    "--nodelist",
+    f"{node}",
+    ] + vllm_cmd
+```
+
+1. 这里要使用 `--overlap` 选项，表示这个作业步会共享整个作业申请到的 CPU 资源．也可以使用 `--exact`，那样就只会用到分配给整个作业步的 CPU 资源，也就是按照 `--cpus-per-gpu=32` 的设置，整个作业步只用到一个 GPU，分配到的 CPU 就是 32，一般也够用．一般来说集群的 CPU 资源都是比较充足的，vllm server 对于 CPU 的要求也不会很高，建议使用 `--overlap` 即可．
+2. 这里指定要使用的节点数量为 1，即 `--nodes=1`．
+3. 这里要指定要使用的节点，即 `--nodelist` 选项，不能让 slurm 自动分配，因为我们要记录用了哪个节点．后面 caddy 启动反向代理服务器的时候需要用到这个参数．
+4. 这里指定要使用的 `gpu` 数量，即 `--gpus-per-node=1`．这样就保证启动的任务会分配到一个 GPU，不需要我们自己设置环境变量 `CUDA_VISIBLE_DEVICES`．实际上，在 slurm 环境中我们一般都不需要设置这个环境变量，因为用户申请到的 GPU 就是要用的，不需要用这个环境变量来指定了．
 
 最后，使用 sbatch 命令提交作业即可．
 
