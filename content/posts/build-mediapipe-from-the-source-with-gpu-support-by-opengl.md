@@ -32,20 +32,20 @@ CPU 版本可以直接从 PyPI 安装，使用命令 `pip install mediapipe` 即
 ### 编译安装
 
 1. ArchLinux 用户可以直接使用 [python-mediapipe-pkgbuild
-   ](https://github.com/hubutui/python-mediapipe-pkgbuild) 提供的 PKGBUILD 文件来打包，目前支持版本为 0.10.9．你也可以从 AUR 上安装 [python-mediapipe-git](https://aur.archlinux.org/packages/python-mediapipe-git)．
+   ](https://github.com/hubutui/python-mediapipe-pkgbuild) 提供的 PKGBUILD 文件来打包，目前支持版本为 0.10.9．github 上的此仓库缺乏维护，建议使用 AUR 上的版本．你也可以从 AUR 上安装 [python-mediapipe-git](https://aur.archlinux.org/packages/python-mediapipe-git) 或者 [python-mediapipe](https://aur.archlinux.org/packages/python-mediapipe)．
 2. 其他发行版的用户可能需要根据实际需要，对 mediapipe 的源码做一些简单的修改，详细的 patch 都已经在 [python-mediapipe-pkgbuild
    ](https://github.com/hubutui/python-mediapipe-pkgbuild) 中提供．这里列出需要注意和修改的点：
 
-   - 修改 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L89-L91)，将 `rules_apple` 更新到 3.2.1 版本，注意需要自己下载更新后的源码，计算 sha256sum 并更新．
-   - 修改 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L63-L68)，注释掉应用 `com_google_protobuf_fixes.diff` 补丁的部分．
-   - 如果你的编译器是 gcc >= 13，需要把第三方包 `com_google_audio_tools`打个补丁，添加 `cstdint` 文件头．这里可以直接根据 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L229) 去下载 com_google_audio_tools 的源码，应用补丁 [com_google_audio_tools_fixes.diff](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/third_party/com_google_audio_tools_fixes.diff)，编辑 [audio/dsp/porting.h](https://github.com/google/multichannel-audio-tools/blob/80892ee5252829701db4e57c9ecc3a825fa1e87c/audio/dsp/porting.h#L23)，加上一行 `#include cstdint`，然后重新生成补丁，覆盖掉 [com_google_audio_tools_fixes.diff](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/third_party/com_google_audio_tools_fixes.diff) 即可．
+   - 修改 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L89-L91)，将 `rules_apple` 更新到 3.2.1 版本，注意需要自己下载更新后的源码，计算 sha256sum 并更新．20241220 更新，此步骤可以不用了．
+   - 修改 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L63-L68)，注释掉应用 `com_google_protobuf_fixes.diff` 补丁的部分．20241220 更新，此步骤可以不用了．
+   - 如果你的编译器是 gcc >= 13，需要把第三方包 `com_google_audio_tools`打个补丁，添加 `cstdint` 文件头．这里可以直接根据 [WORKSPACE](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/WORKSPACE#L229) 去下载 com_google_audio_tools 的源码，应用补丁 [com_google_audio_tools_fixes.diff](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/third_party/com_google_audio_tools_fixes.diff)，编辑 [audio/dsp/porting.h](https://github.com/google/multichannel-audio-tools/blob/80892ee5252829701db4e57c9ecc3a825fa1e87c/audio/dsp/porting.h#L23)，加上一行 `#include cstdint`，然后重新生成补丁，覆盖掉 [com_google_audio_tools_fixes.diff](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/third_party/com_google_audio_tools_fixes.diff) 即可．20241220 更新，此步骤可以不用了，官方已经修复．
    - 修改 [opencv_linux.BUILD](https://github.com/google/mediapipe/blob/master/third_party/opencv_linux.BUILD)，根据你已经安装好的 opencv 的版本和路径修改要使用的头文件路径．
-   - 修改 [setup.py](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/setup.py#L230)，给 `protoc` 命令加上一个选项 `--experimental_allow_proto3_optional`．
+   - 修改 [setup.py](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/setup.py#L230)，给 `protoc` 命令加上一个选项 `--experimental_allow_proto3_optional`．20241220 更新，此步骤可以不用了．
    - 设置 `link_opencv` 为 `True`，这个可以直接 [setup.py](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/setup.py)，简单的查找替换即可．
    - 设置版本号，直接修改 [setup.py](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/setup.py) 中的 `__version__` 即可．
-   - 修改 [.bazelversion](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/.bazelversion) 中的版本号为你实际使用的 bazel．如果可以，建议直接使用 mediapipe 源码中 `.bazelversion` 指定的版本．
+   - 修改 [.bazelversion](https://github.com/google/mediapipe/blob/4237b765ce95af0813de4094ed1e21a67bad2a5f/.bazelversion) 中的版本号为你实际使用的 bazel．如果可以，建议直接使用 mediapipe 源码中 `.bazelversion` 指定的版本．20241220 更新，目前官方使用的是 6.5.0 版本，其他版本不做保证．
 
-3. 最后，执行命令 `MEDIAPIPE_DISABLE_GPU=0 python -m build --wheel --no-isolation` 可以编译生成 wheel 文件，该文件保存在 `dist` 目录下，然后使用 pip 命令安装即可．这里若设置 `MEDIAPIPE_DISABLE_GPU=1` 则不会编译 GPU 支持．这里的 GPU 支持指的是通过 OpenGL 来支持．Debian 和 Ubuntu 用户需要安装 `mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev` 或者 `nvidia-utils` 等相关包．
+3. 最后，执行命令 `MEDIAPIPE_DISABLE_GPU=0 python -m build --wheel --no-isolation` 可以编译生成 wheel 文件，该文件保存在 `dist` 目录下，然后使用 pip 命令安装即可．这里若设置 `MEDIAPIPE_DISABLE_GPU=1` 则会编译 GPU 支持．这里的 GPU 支持指的是通过 OpenGL 来支持．Debian 和 Ubuntu 用户需要安装 `mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev` 或者 `nvidia-utils` 等相关包．
 
 ## 使用
 
@@ -63,7 +63,7 @@ mp_face_detection = mp.solutions.face_detection
 img_file = "demo.png"
 with mp_face_detection.FaceDetection(
     model_selection=1, min_detection_confidence=0.5) as face_detection:
-  image = cv2.imread(file)
+  image = cv2.imread(img_file)
   # Convert the BGR image to RGB and process it with MediaPipe Face Detection.
   results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 ```
