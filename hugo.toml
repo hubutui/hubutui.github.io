@@ -16,6 +16,13 @@ enableEmoji = true  # Shorthand emojis in content files - https://gohugo.io/func
 [author]
   name = "胡不退"
 
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.mmark]
+    enable = true
+
 [blackfriday]
   # hrefTargetBlank = true
   # noreferrerLinks = true
@@ -49,7 +56,7 @@ enableEmoji = true  # Shorthand emojis in content files - https://gohugo.io/func
   relatedPosts = false  # Add a related content section to all single posts page
 
   code_copy_button = true # Turn on/off the code-copy-button for code-fields
-  
+
   # Add custom css
   # customCSS = ["css/foo.css", "css/bar.css"]
 
