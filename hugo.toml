@@ -1,4 +1,5 @@
-baseURL = "https://butui.me"
+# baseURL = "https://butui.me"
+baseURL = "https://hubutui.github.io"
 languageCode = "en-us"
 defaultContentLanguage = "en"
 title = "逆水行舟"
