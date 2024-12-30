@@ -1,7 +1,6 @@
-# baseURL = "https://butui.me"
-baseURL = "https://hubutui.github.io"
+baseURL = "https://www.butui.me"
 languageCode = "en-us"
-defaultContentLanguage = "en"
+defaultContentLanguage = "zh"
 title = "逆水行舟"
 theme = "hermit-v2"
 # enableGitInfo = true
@@ -13,6 +12,12 @@ copyright = "This work is licensed under a Creative Commons Attribution-NonComme
 enableEmoji = true  # Shorthand emojis in content files - https://gohugo.io/functions/emojify/
 # googleAnalytics = "UA-123-45"
 # disqusShortname = "yourdiscussshortname"
+
+[frontmatter]
+date = ["date", "publishDate", "lastmod"]
+lastmod = ["lastmod", ":git", "date", "publishDate"]
+publishDate = ["publishDate", "date"]
+expiryDate = ["expiryDate"]
 
 [author]
   name = "胡不退"
