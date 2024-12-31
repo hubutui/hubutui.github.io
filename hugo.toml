@@ -22,23 +22,22 @@ expiryDate = ["expiryDate"]
 [author]
   name = "胡不退"
 
+# Enable to get proper Mathjax support
 [markup]
   [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-  [markup.mmark]
-    enable = true
-
-[blackfriday]
-  # hrefTargetBlank = true
-  # noreferrerLinks = true
-  # nofollowLinks = true
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
 
 [taxonomies]
   tag = "tags"
   # Categories are disabled by default.
 
 [params]
+  math = true
   dateform        = "Jan 2, 2006"
   dateformShort   = "Jan 2"
   dateformNum     = "2006-01-02"
