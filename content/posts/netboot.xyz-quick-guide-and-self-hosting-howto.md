@@ -10,6 +10,7 @@ tags:
   - PXE
   - iPXE
   - self hosting netboot.xyz
+  - syslinux
 ---
 
 ## 前言
@@ -162,7 +163,7 @@ release_overrides:
     mirror: http://mirrors.ustc.edu.cn
 ```
 
-其中 `192.168.1.100:8081` 是我提供 iPXE 脚本的 HTTP 服务地址，`http://192.168.1.100:8080` 则是我提供 Live CD 所需文件的 HTTP 服务地址．
+其中 `192.168.1.100:8081` 是我们提供 iPXE 脚本的 HTTP 服务地址，`http://192.168.1.100:8080` 则是我们提供 Live CD 所需文件的 HTTP 服务地址．
 
 然后我们在 netboot.xyz 源码根目录下执行以下命令进行构建：
 
@@ -172,22 +173,94 @@ docker run --rm -it --platform=linux/amd64 -v $(pwd):/buildout localbuild
 docker rmi localbuild
 ```
 
-执行成功之后，我们就可以在 `buildout` 目录下看到构建的结果，包括所有的 iPXE 脚本和 `buildout/ipxe` 目录下的的适用于不同启动方式的可启动文件．docker 构建并没有直接输出一个 ISO 镜像文件给我们用，我们还需要额外的操作来生成一个可启动的 ISO 镜像文件．
+执行成功之后，我们就可以在 `buildout` 目录下看到构建的结果，包括所有的 iPXE 脚本和 `buildout/ipxe` 目录下的的适用于不同启动方式的可启动文件．docker 构建并没有直接输出一个 ISO 镜像文件给我们用，我们还需要额外的操作来生成一个可启动的 ISO 镜像文件．这里以构建官方的 netboot.xyz.iso 文件为例，他是同时兼容传统 BIOS 和 UEFI iPXE 的引导加载程序．
 
-这里，我们可以使用通过替换官方的 netboot.xyz.iso 文件里的启动内核来实现．
+为此，我们首先下载官方版本的 netboot.xyz.iso 文件，并将其挂载：
 
 ```bash
 # 下载官方版本的 netboot.xyz.iso 文件
 wget https://boot.netboot.xyz/ipxe/netboot.xyz.iso
 # 挂载
 mount netboot.xyz.iso /mnt
-mkdir iso-data
-# 复制官方版本的 netboot.xyz.iso 镜像的内容
-cp -rvf /mnt/* iso-data
-# 替换掉其中的启动内核
-cp buildout/ipxe/netboot.xyz.lkrn iso-data
-# 创建 ISO 镜像文件
-mkisofs -o netboot.xyz.custom.iso -J -R -b isolinux.bin -c boot.catalog -no-emul-boot -boot-load-size 4 -boot-info-table iso-data
+```
+
+检查 `/mnt` 可以看到目录结构：
+
+```bash
+/mnt
+├── autoexec.ipxe
+├── boot.catalog
+├── esp.img
+├── isolinux.bin
+├── isolinux.cfg
+├── ldlinux.c32
+└── netboot.xyz.lkrn
+```
+
+其中：
+1. `autoexec.ipxe` 是一个 iPXE 脚本，我们可以编辑和修改他．
+2. `boot.catalog` 是在制作 ISO 文件的时候自动生成的，我们不用管．
+3. `isolinux.bin` 和 `ldlinux.c32` 都是 [syslinux](https://wiki.syslinux.org/wiki/index.php?title=The_Syslinux_Project) 提供的文件．
+4. `isolinux.cfg` 是 syslinux 的启动菜单配置文件，我们不需要修改．
+5. `netboot.xyz.lkrn` 是我们构建出来的 netboot.xyz 的内核文件，在 `buildout/ipxe` 目录下可以找到．
+6. `esp.img` 是 DOS/MBR 引导扇区的映像文件，我们可以将其挂载，查看其内容．将其挂载到 `esp` 目录，可以看到其目录结构：
+
+```bash
+esp
+├── autoexec.ipxe
+└── EFI
+    └── BOOT
+        └── BOOTX64.EFI
+```
+
+其中 `autoexec.ipxe` 也是一个 iPXE 脚本，我们可以根据需要修改他；而 `BOOTX64.EFI` 实际上就是 [netboot.xyz.efi](https://boot.netboot.xyz/ipxe/netboot.xyz.efi)，一个 x86_64 UEFI iPXE 引导程序，我们可以通过计算其 sha1sum 来验证这一点．我们自己构建出来的对应文件为 `buildout/ipxe/netboot.xyz.efi`
+
+有了以上信息，我们制作可启动的 ISO 镜像文件的步骤也就清晰明了了．
+
+1. 制作 `eps.img` 文件
+
+```bash
+# 使用 dd 命令创建文件
+# 2880 扇区，每扇区 512 字节
+dd if=/dev/zero of=esp.img bs=512 count=2880
+# 创建 FAT12 文件系统
+mkfs.fat -F 12 esp.img
+# 挂载文件，假设挂载目录为 /mnt-esp
+sudo mount esp.img /mnt-esp
+# 将官方版本的 esp.img 的目录复制过去，假设官方版本的 esp.img 挂载到了 /mnt-esp-official
+sudo cp -rfv /mnt-esp-official/* /mnt-esp
+# 然后编辑替换 /mnt-esp/autoexec.ipxe 中的 `boot_domain` 的值为我们自己的服务地址
+# 最后用我们的 buildout/ipxe/netboot.xyz.efi 替换掉 BOOTX64.EFI
+sudo cp -vf buildout/ipxe/netboot.xyz.efi /mnt-esp/EFI/BOOT/BOOTX64.EFI
+# 最后 umount 即可
+sudo umount /mnt-esp
+sudo umount /mnt-esp-official
+```
+
+这样，`esp.img` 文件也准备好了．
+
+2. 制作可启动的 ISO 镜像文件，假设文件都放在 `iso-root` 目录下，我们需要以下这些文件：
+
+```bash
+iso-root
+├── autoexec.ipxe
+├── esp.img
+├── isolinux.bin
+├── isolinux.cfg
+├── ldlinux.c32
+└── netboot.xyz.lkrn
+```
+
+  - 同样地，我们需要编辑 `autoexec.ipxe` 脚本，替换 `boot_domain` 为我们自己设置的服务器地址．
+  - `esp.img` 文件为上一步我们制作好的．
+  - `isolinux.bin`，`ldlinux.c32` 可以直接用官方 netboot.xyz.iso 文件里的，也可以去 syslinux 这个包里找到最新的版本复制替换掉．
+  - `isolinux.cfg` 不需要修改，直接用官方 `netboot.xyz.iso` 文件里的即可．
+  - `netboot.xyz.lkrn` 使用我们自己构建好的 `buildout/ipxe/netboot.xyz.lkrn` 即可．
+
+然后使用以下命令来构建：
+
+```bash
+xorrisofs -o netboot.xyz.custom.iso -J -R -b isolinux.bin -c boot.catalog -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e esp.img -no-emul-boot iso-root
 ```
 
 后续，我们将使用这个 `netboot.xyz.custom.iso` 文件来启动，他将会从 `192.168.1.100:8081` 获取对应的 iPXE 脚本来启动，从 `http://192.168.1.100:8080` 获取 Live CD 启动所需的文件．
@@ -222,7 +295,6 @@ services:
     image: ghcr.io/netbootxyz/netbootxyz
     container_name: netbootxyz
     environment:
-      - MENU_VERSION=2.0.84 # optional
       - NGINX_PORT=80 # optional
       - WEB_APP_PORT=3000 # optional
     volumes:
@@ -230,14 +302,11 @@ services:
       - ./volumes/assets:/assets # optional
     ports:
       - 3000:3000 # optional, destination should match ${WEB_APP_PORT} variable above.
-      # - 69:69/udp
       - 8080:80 # optional, destination should match ${NGINX_PORT} variable above.
-    restart: unless-stopped
+    restart: always
 ```
 
 然后使用 `docker compose up -d` 命令启动，启动成功之后浏览器访问 `http://IP:3000` 即可看到网页形式的配置页面，点击切换到 `Local Assets`，左侧显示的是远程的文件，找到我们需要用的 Linux 发行版的 Live CD 所需的文件，勾选并拉取，即可在右侧显示出来．浏览器访问 `http://IP:8080` 你应该就可以看到这些内容了．这个时候，只需要把 `live_endpoint` 设置为 `http://IP:8000`，那 netboot.xyz 就是从我们本地的这个服务器下载对应的文件了．
-
-实际上，前面我们已经稍微提到了一点，我们可以自己托管一个 netboot.xyz 的服务，这样我们启动进入 netboot.xyz 之后就不需要从互联网上下载内容，而是直接从我们自托管在局域网里的站点下载，速度肯定会更加快．
 
 ### 启动
 
