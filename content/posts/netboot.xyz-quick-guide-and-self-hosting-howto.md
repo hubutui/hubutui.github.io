@@ -153,9 +153,11 @@ release_overrides:
     base_dir: "debian"
   fedora:
     mirror: http://mirrors.ustc.edu.cn
+  # openEuler 在 163 的镜像才有提供
+  # 并且设置 base_dir 无效，因为脚本里拼接的时候没有用到 base_dir
+  # 因此只能设置 mirror
   openEuler:
-    base_dir: openeuler
-    mirror: http://mirrors.sustech.edu.cn
+    mirror: http://mirrors.163.com/openeuler
   opensuse:
     base_dir: opensuse/distribution/leap
     mirror: http://mirrors.ustc.edu.cn
