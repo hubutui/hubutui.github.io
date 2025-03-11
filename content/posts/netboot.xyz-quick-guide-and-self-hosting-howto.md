@@ -40,9 +40,11 @@ tags:
 
 进入菜单之后，我们直接选择想要的系统即可进去开始安装了．这些菜单默认都是从各个 Linux 发行版的官网下载安装器的，虽然这个文件相对于完整的 ISO 来说是小了很多，但是如果从各个 Linux 发行版的官网去下载，速度比较还是会比较慢，还是要设置使用国内的镜像源会更快一些．
 
-这个时候，我们可以先在 iPXE shell 里设置环境变量来指定相应的环境变量．但是具体每个 Linux 发行版使用的环境变量名字是不同的，一般我们需要关注的是 `xxx_mirror` 和 `xxx_base_dir` 这两个环境变量．具体的，我们可以查阅 netboot.xyz 的 github 仓库里的脚本，这些脚本都在这个[目录](https://github.com/netbootxyz/netboot.xyz/tree/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu)下．例如，对于 ArchLinux，对应的脚本为 [archlinux.ipxe.j2](https://github.com/netbootxyz/netboot.xyz/blob/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu/archlinux.ipxe.j2)．我们需要检查和设置 `archlinux_mirror` 和 `archlinux_base_dir` 这两个环境变量．
+这个时候，我们可以先在 iPXE shell 里设置环境变量来指定相应的环境变量．但是具体每个 Linux 发行版使用的环境变量名字是不同的，一般我们需要关注的是 `xxx_mirror` 和 `xxx_base_dir` 这两个环境变量．具体的，我们可以查阅 netboot.xyz 的 github 仓库里的脚本，这些脚本都在这个[目录](https://github.com/netbootxyz/netboot.xyz/tree/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu)下．
 
-**注意：**这里的 `.ipxe.j2` 是一个 Jinja2 模板文件，并不是最终的 iPXE 脚本，不能直接使用．需要可以直接使用的的 iPXE 脚本可以访问 `https://boot.netboot.xyz/archlinux.ipxe`，其他的文件也是类似，只需要把 `.j2` 后缀去掉即可．
+例如，对于 ArchLinux，对应的脚本为 [archlinux.ipxe.j2](https://github.com/netbootxyz/netboot.xyz/blob/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu/archlinux.ipxe.j2) 或者 [archlinux.ipxe](https://boot.netboot.xyz/archlinux.ipxe)．我们需要检查和设置 `archlinux_mirror` 和 `archlinux_base_dir` 这两个环境变量．
+
+**注意：**源码仓库 `templates/menu` 目录下提供的是 iPXE Jinja2 模板文件，构建之后才会生成实际的 iPXE 文件．我们可以从 Github 仓库的 release 页面下载构建好的 `menus.tar.gz` 压缩包，例如 2.0.85 版本的 [menus.tar.gz](https://github.com/netbootxyz/netboot.xyz/releases/download/2.0.85/menus.tar.gz)．或者只需要单个的话，直接从 URL：`https://boot.netboot.xyz/{filename}`，其中 `filename` 为源码目录 `templates/menu` 下的文件名（去掉 `.j2`后缀名）．
 
 进入 iPXE shell 之后：
 
@@ -105,7 +107,7 @@ chain url
 
 很多 Linux 发行版还会提供一个很大的 ISO 文件或者 Live CD/DVD，让你可以直接用来安装或者体验系统．但是这些文件太大了，不适合网络启动．对于这种情况，netboot.xyz 会定期检查这些系统的更新，然后重新打包发布到 Github 上，然后让 netboot.xyz 去下载和载入这些重新打包过的文件来通过网络启动．
 
-这些内容都放在了 LiveCDs 菜单下，这些发行版包括我们常用的 Debian, Fedora，Ubuntu 等．如果你想要用这些，就需要保证你的网络能够正常访问 Github．他们也有对应的 iPXE 脚本，放在这个[目录](https://github.com/netbootxyz/netboot.xyz/tree/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu)下，都是以 `live` 开头的那些．
+这些内容都放在了 LiveCDs 菜单下，这些发行版包括我们常用的 Debian, Fedora，Ubuntu 等．如果你想要用这些，就需要保证你的网络能够正常访问 Github．他们也有对应的 iPXE 脚本 Jinja2 模板文件，放在这个[目录](https://github.com/netbootxyz/netboot.xyz/tree/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu)下，都是以 `live` 开头的那些．
 
 例如，根据 [live-ubuntu.ipxe.j2](https://github.com/netbootxyz/netboot.xyz/blob/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu/live-ubuntu.ipxe.j2)，我们可以知道他需要从 `live_endpoint` 下载文件，默认的 `live_endpoint` 为 `https://github.com/netbootxyz`．把脚本中的 `kernel_url` 手动选一下，我们可以找到 [netbootxyz/ubuntu](https://github.com/netbootxyz/ubuntu-squash) 这个仓库，打开其 Release 页面，可以看到实际需要下载 `vmlinuz`，`initrd` 等文件．如果我们提前下载好，并且设置按照相同的目录结构准备好，启动一个 HTTP 服务，进入 iPXE shell 设置一下 `live_point` 为我们本地的地址，那么实际下载也就从本地的服务器下载，应该会比从 Github 上下载要快很多了．
 
