@@ -44,7 +44,7 @@ tags:
 
 例如，对于 ArchLinux，对应的脚本为 [archlinux.ipxe.j2](https://github.com/netbootxyz/netboot.xyz/blob/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu/archlinux.ipxe.j2) 或者 [archlinux.ipxe](https://boot.netboot.xyz/archlinux.ipxe)．我们需要检查和设置 `archlinux_mirror` 和 `archlinux_base_dir` 这两个环境变量．
 
-**注意：**源码仓库 `templates/menu` 目录下提供的是 iPXE Jinja2 模板文件，构建之后才会生成实际的 iPXE 文件．我们可以从 Github 仓库的 release 页面下载构建好的 `menus.tar.gz` 压缩包，例如 2.0.85 版本的 [menus.tar.gz](https://github.com/netbootxyz/netboot.xyz/releases/download/2.0.85/menus.tar.gz)．或者只需要单个的话，直接从 URL：`https://boot.netboot.xyz/{filename}`，其中 `filename` 为源码目录 `templates/menu` 下的文件名（去掉 `.j2`后缀名）．
+**注意**：源码仓库 `templates/menu` 目录下提供的是 iPXE Jinja2 模板文件，构建之后才会生成实际的 iPXE 文件．我们可以从 Github 仓库的 release 页面下载构建好的 `menus.tar.gz` 压缩包，例如 2.0.85 版本的 [menus.tar.gz](https://github.com/netbootxyz/netboot.xyz/releases/download/2.0.85/menus.tar.gz)．或者只需要单个的话，直接从 URL：`https://boot.netboot.xyz/{filename}`，其中 `filename` 为源码目录 `templates/menu` 下的文件名（去掉 `.j2`后缀名）．
 
 进入 iPXE shell 之后：
 
@@ -62,7 +62,7 @@ show archlinux_base_dir
 set archlinux_mirror mirrors.ustc.edu.cn
 ```
 
-特别注意，默认的 netboot.xyz 带的 iPXE 是不带 HTTPS 支持的．因此，如果你使用的开源镜像源不支持 HTTP 访问则无法使用．比如清华大学的开源镜像源在这里就不能用，但是中科大的是 OK 的．设置完毕之后输入 `exit` 命令退出 iPXE SHELL，然后重新在 Linux Network Installs 菜单下选择 ArchLinux 启动，这次应该会很快下载好所需的文件并启动了．
+特别注意，默认的 netboot.xyz 带的 iPXE 是不带 HTTPS 支持的．因此，如果你使用的开源镜像源不支持 HTTP 访问则无法使用．比如清华大学的开源镜像源在这里就不能用，但是中科大的是 OK 的．设置完毕之后输入 `exit` 命令退出 iPXE shell，然后重新在 Linux Network Installs 菜单下选择 ArchLinux 启动，这次应该会很快下载好所需的文件并启动了．
 
 又如 Rocky Linux，他的脚本在 [rockylinux.ipex.j2](https://github.com/netbootxyz/netboot.xyz/blob/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu/rockylinux.ipxe.j2)．根据这个脚本，我们可以知道我们要设置的环境变量为 `rockylinux_mirror` 和 `rockylinux_base_dir`：
 
