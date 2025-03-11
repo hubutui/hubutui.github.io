@@ -137,11 +137,14 @@ chain url
 git clone https://github.com/netbootxyz/netboot.xyz.git
 ```
 
-然后编辑源码目录下的 [user_overrides.yml](https://github.com/netbootxyz/netboot.xyz/blob/development/user_overrides.yml)，他会覆盖掉最终生成的镜像文件里的设置．所有可以配置的选项见源码目录下的 [roles/netbootxyz/defaults/main.yml](https://github.com/netbootxyz/netboot.xyz/blob/development/roles/netbootxyz/defaults/main.yml) 文件．我们只需要在 `user_overrides.yml` 里设置需要改动的项，它会在构建过程中覆盖 `roles/netbootxyz/defaults/main.yml` 中对应的项．具体的，我们需要设置 `boot_domain`， `live_endpoint` 和 `release_overrides` 下我们需要用到的 Linux 发行版的的相关项．例如，我的一个配置如下：
+然后编辑源码目录下的 [user_overrides.yml](https://github.com/netbootxyz/netboot.xyz/blob/development/user_overrides.yml)，他会覆盖掉最终生成的镜像文件里的设置．所有可以配置的选项见源码目录下的 [roles/netbootxyz/defaults/main.yml](https://github.com/netbootxyz/netboot.xyz/blob/development/roles/netbootxyz/defaults/main.yml) 文件．我们只需要在 `user_overrides.yml` 里设置需要改动的项，它会在构建过程中覆盖 `roles/netbootxyz/defaults/main.yml` 中对应的项．具体的，我们需要设置 `boot_domain`, `live_endpoint`, `generate_disks_hybrid`, `bootloader_https_enabled` 和 `release_overrides` 下我们需要用到的 Linux 发行版的的相关项．例如，我的一个配置如下：
 
 ```yaml
 boot_domain: 192.168.1.100:8081
 live_endpoint: http://192.168.1.100:8080
+generate_disks_hybrid: true
+time_server: cn.ntp.org.cn
+bootloader_https_enabled: false
 release_overrides:
   archlinux:
     mirror: "mirrors.ustc.edu.cn"
@@ -152,7 +155,7 @@ release_overrides:
     mirror: http://mirrors.ustc.edu.cn
   openEuler:
     base_dir: openeuler
-    mirror: http://mirrors.ustc.edu.cn
+    mirror: http://mirrors.sustech.edu.cn
   opensuse:
     base_dir: opensuse/distribution/leap
     mirror: http://mirrors.ustc.edu.cn
@@ -165,6 +168,15 @@ release_overrides:
 
 其中 `192.168.1.100:8081` 是我们提供 iPXE 脚本的 HTTP 服务地址，`http://192.168.1.100:8080` 则是我们提供 Live CD 所需文件的 HTTP 服务地址．
 
+默认的构建配置不会生成 ISO 文件，我们需要设置 `generate_disks_hybrid: true` 才会生成．`time_server` 这里我们也设置为国内的．`bootloader_https_enabled` 设置为 `false`，因为我们这个局域网没有 HTTPS 的．不设置也没事，只是 netboot.xyz 启动的时候会默认先尝试通过 HTTPS 连接获取 iPXE 脚本，失败之后再次尝试 HTTP．
+
+除此之外，`roles/netbootxyz/templates/menu/menu.ipxe.j2` 里还设置了默认会从上游检查最新的版本，我们这里不需要，也可以将其删掉．也就是删掉该文件的这两行：
+
+```bash
+echo Attempting to retrieve latest upstream version number...
+chain --timeout 5000 https://boot.netboot.xyz/version.ipxe ||
+```
+
 然后我们在 netboot.xyz 源码根目录下执行以下命令进行构建：
 
 ```bash
@@ -173,7 +185,11 @@ docker run --rm -it --platform=linux/amd64 -v $(pwd):/buildout localbuild
 docker rmi localbuild
 ```
 
-执行成功之后，我们就可以在 `buildout` 目录下看到构建的结果，包括所有的 iPXE 脚本和 `buildout/ipxe` 目录下的的适用于不同启动方式的可启动文件．docker 构建并没有直接输出一个 ISO 镜像文件给我们用，我们还需要额外的操作来生成一个可启动的 ISO 镜像文件．这里以构建官方的 netboot.xyz.iso 文件为例，他是同时兼容传统 BIOS 和 UEFI iPXE 的引导加载程序．
+执行成功之后，我们就可以在 `buildout` 目录下看到构建的结果，包括所有的 iPXE 脚本和 `buildout/ipxe` 目录下的的适用于不同启动方式的可启动文件．
+
+**注意**：我之前没有注意到 `generate_disks_hybrid` 这个配置项目没有打开，误以为docker 构建并没有直接输出一个 ISO 镜像文件给我们用．因此后文还写了详细的如何手动创建一个可启动的 ISO 镜像文件．这里暂时保留内容，以供参考，一般不需要使用．
+
+我们可以手动生成一个可启动的 ISO 镜像文件．这里以构建官方的 netboot.xyz.iso 文件为例，他是同时兼容传统 BIOS 和 UEFI iPXE 的引导加载程序．
 
 为此，我们首先下载官方版本的 netboot.xyz.iso 文件，并将其挂载：
 
@@ -198,6 +214,7 @@ mount netboot.xyz.iso /mnt
 ```
 
 其中：
+
 1. `autoexec.ipxe` 是一个 iPXE 脚本，我们可以编辑和修改他．
 2. `boot.catalog` 是在制作 ISO 文件的时候自动生成的，我们不用管．
 3. `isolinux.bin` 和 `ldlinux.c32` 都是 [syslinux](https://wiki.syslinux.org/wiki/index.php?title=The_Syslinux_Project) 提供的文件．
@@ -310,7 +327,19 @@ services:
 
 ### 启动
 
-一切准备就绪，即可挂载我们制作好的 `netboot.xyz.custom.iso` 文件，然后启动了．此时进入 iPXE shell，我们可以检查一下 `boot_domain` 和 `live_endpoint` 是否设置为了我们定义的值．
+一切准备就绪，即可挂载我们制作好的 `netboot.xyz.custom.iso` 文件，然后启动了．此时进入 iPXE shell，我们可以检查一下 `boot_domain` 和 `live_endpoint` 是否设置为了我们定义的值．这里为了方便，我们可以使用 qemu 来测试，测试 legacy BIOS 启动方式，可以使用命令：
+
+```bash
+qemu-system-x86_64 -cdrom netboot.xyz.custom.iso -m 8G
+```
+
+测试 UEFI 启动，可以使用命令：
+
+```bash
+qemu-system-x86_64 -bios OVMF.fd -cdrom netboot.xyz.custom.iso -m 8G
+```
+
+其中 `OVMF.fd` 由 [ovmf](https://github.com/tianocore/tianocore.github.io/wiki/OVMF) 包提供．在一些发行版中他的名字可能是 `OVMF.4m.fd`，根据实际情况修改即可．
 
 ### 直接使用系统自带的 iPXE shell
 
