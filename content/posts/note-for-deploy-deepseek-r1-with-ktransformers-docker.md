@@ -67,7 +67,7 @@ RUN pip install --no-cache-dir \
 RUN pip --no-cache-dir install \
   flash-attn
 RUN pip install \
- -i https://flashinfer.ai/whl/cu121/torch2.3 \
+ -i https://flashinfer.ai/whl/cu121/torch2.5 \
  flashinfer-python
 ```
 
