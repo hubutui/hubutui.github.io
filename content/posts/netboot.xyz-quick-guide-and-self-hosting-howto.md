@@ -369,3 +369,8 @@ chain url
 4. 也可以直接预先编辑和托管 [netboot.xyz/menu](https://github.com/netbootxyz/netboot.xyz/tree/ada528e3ea16206321e352bb639816b9a6de8e31/roles/netbootxyz/templates/menu) 的这些 iPXE 脚本，提前设置好其中的 `xxx_mirror` 和 `xxx_base_dir`．在 iPXE shell（不论是 netboot.xyz 里的还是你的服务自己提供的）里使用 `chain` 命令启动即可．
 5. 不太推荐使用 netboot.xyz 里提供的 Live CDs 来安装，因为要从 Github 下载文件，可能网络受限，不会很顺利．
 6. 想要搭建完全自托管的 netboot.xyz 需要耗费一番功夫，如果不是特别需要的话，建议略过．
+
+## 参考
+
+1. Youtube 上的这个视频不错，可以看看：[Meet netboot.xyz - Network Boot Any Operating System](https://www.youtube.com/watch?v=4btW5x_clpg)，或者直接看 B 站上的[搬运视频](https://www.bilibili.com/video/BV1i6421c7oM)．
+2. 这里也有一个使用 netboot.xyz 安装系统的实录，可以看到底长什么样：[qemu 中使用 netboot.xyz 实录](https://www.bilibili.com/video/BV1cLDfYvEkq)．
