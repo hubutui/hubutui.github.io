@@ -26,16 +26,17 @@ git submodule update --init --recursive
 2. 然后使用一个 Docker 镜像来编译：
 
 ```bash
-docker run -it --rm --gpus all -v ./:/data --shm-size 8G pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel bash
+docker run -it --rm --gpus all -v ./:/data --shm-size 8G pytorch/pytorch:2.5.1-cuda12.1-cudnn8-devel bash
 cd /data
-# 安装编译依赖
-pip install cpufeature
+# 安装依赖
+pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+pip install build cpufeature
 # 编译生成 whl 文件，这里的 TORCH_CUDA_ARCH_LIST 根据自己的显卡来
 # 可以参考 https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards 来确定
 LANG=en_US.UTF-8 \
 TORCH_CUDA_ARCH_LIST="8.6" \
 KTRANSFORMERS_FORCE_BUILD=TRUE \
-python -m build --wheel --no-isolation -x
+python -m build --wheel --no-isolation
 # 编译完毕之后会在 dist 目录下得到一个 whl 文件
 ```
 
@@ -59,7 +60,7 @@ docker build -t ktransformers:$(date -uI) --progress plain -f Dockerfile.local .
 `Dockerfile.local` 内容如下：
 
 ```dockerfile
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn8-devel
 RUN pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 RUN pip install --no-cache-dir \
    <WHL-URL>
@@ -69,6 +70,8 @@ RUN pip install \
  -i https://flashinfer.ai/whl/cu121/torch2.3 \
  flashinfer-python
 ```
+
+这里 flash-attn 和 flashinfer-python 也可以从网上下载先下载好 whl 文件，方便多次尝试构建的时候提升安装速度．
 
 ## 启动服务
 
