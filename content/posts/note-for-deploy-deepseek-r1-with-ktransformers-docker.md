@@ -84,7 +84,7 @@ docker compose up -d
 注意：
 
 1. DeepSeek-R1-Q4_K_M 需要大约 14G 显存和 382G 内存，内存不足即使可以启动，但是实质上无法工作．
-2. DeepSeek-R1-Q4_K_M 需要完整读取，受限于磁盘 IO 和内存带宽，可能需要耗时 1 个小时左右才能让服务启动成功，需要耐心等待．
+2. DeepSeek-R1-Q4_K_M 需要完整读取，受限于磁盘 IO 和内存带宽，可能需要耗时较长时间才能让服务启动成功，需要耐心等待．
 3. DeepSeek-V2-Lite-Chat-GGUF 可以用于简单测试，这个模型比较小，很快可以启动起来．
 
 完整的 `docker-compose.yaml` 如下：
