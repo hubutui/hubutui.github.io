@@ -45,7 +45,7 @@ tags:
 - ../api/tests:/app/api/tests:ro
 ```
 
-2. 设置 [docker/.env](docker/.env) 中的环境变量 `DEBUG=true`．
+2. 设置 [docker/.env](docker/.env) 中的环境变量 `DEBUG=true` 和 `FLASK_DEBUG=true`
 3. 注意修改代码打印日志的时候不能直接用 `print` 函数，应该用 `logging` 模块，记得添加一些标记，方便查找．
 4. 此外还可以在抛出异常的部分使用 `traceback` 来输出更加详细的信息：
 
@@ -65,11 +65,11 @@ traceback.print_exc()
 # 修改前
 # exec flask run --host=${DIFY_BIND_ADDRESS:-0.0.0.0} --port=${DIFY_PORT:-5001} --debug
 # 修改后
-exec debugpy --listen 0.0.0.0:5678 -m flask run --host=${DIFY_BIND_ADDRESS:-0.0.0.0} --port=${DIFY_PORT:-5001} --debug
+/app/api/.venv/bin/python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m flask run --host=${DIFY_BIND_ADDRESS:-0.0.0.0} --port=${DIFY_PORT:-5001} --debug
 ```
 
 也就是改用 `debuggpy` 来启动，这样就可以让我们的 vs code 连接到要调试的程序了．将修改后的启动脚本挂载到 `api` 服务容器内的 `/entrypoint.sh`．
-如果 `api` 服务所使用的容器还没有安装 `debugpy` 这个包，我们可以在已有的容器基础上安装这个包并构建镜像，也可以直接修改以上的启动脚本，在启动程序之前使用 `pip install debugpy` 命令安装．
+如果 `api` 服务所使用的容器还没有安装 `debugpy` 这个包，我们可以在已有的容器基础上安装这个包并构建镜像，也可以直接修改以上的启动脚本，在启动程序之前使用 `pip install debugpy` 命令安装．新的 dify 1.x 版本改用 uv 进行包管理，这里可以替换为 `uv pip install debugpy`．
 
 2. 注意到我们调试需要用 5678 端口，因此需要修改 `api` 服务的端口映射，将 5678 端口映射出来．出于安全原因，建议绑定到 `127.0.0.1`，也就是写 `- 127.0.0.1:5678:5678`．如果宿主机的端口 5678 被占用了，你可以用其他的端口．
 3. 在 [.vscode/launch.json](.vscode/launch.json) 中添加调试配置：
