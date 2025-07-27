@@ -68,6 +68,13 @@ unqualified-search-registries = ["docker.io"]
 ```bash
 sudo systemctl stop docker.socket
 sudo systemctl stop docker.service
+sudo systemctl disable docker.socket
+sudo systemctl disable docker.service
+# 如果你用的是 rootless docker
+systemctl --user stop docker.socket
+systemctl --user stop docker.service
+systemctl --user disable docker.socket
+systemctl --user disable docker.service
 # 这里我们使用普通用户 ubuntu
 sudo loginctl enable-linger ubuntu
 # 这里我们直接启动 podman.socket
@@ -76,6 +83,8 @@ systemctl --user start podman.socket
 systemctl --user enable podman.socket
 # 设置 DOCKER_HOST 为 podman.socket，让 docker 跟这个套接字通信
 # 这个配置也可以写到 .bashrc 里去
+# 可能不行发行版的 podman.socket 路径不同
+# 你可以使用 systemctl --user status podman.socket 命令查看
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
 ```
 
@@ -247,9 +256,26 @@ version:
 
 你可以可以参考[文档](https://docs.podman.io/en/latest/markdown/podman-compose.1.html)来设置让 podman 默认使用哪一个．
 
-一般认为 podman-compose 对 docker compose 的兼容性有一些小问题，例如环境变量的设置，见 [issue #491](https://github.com/containers/podman-compose/issues/491)．建议优先选择 docker-compose．
+一般认为 podman-compose 对 docker compose 的兼容性有一些小问题，例如环境变量的设置，见 [issue #491](https://github.com/containers/podman-compose/issues/491)，不过该问题已经被修复了．但是也可能有其他兼容性问题我们只是暂时没有发现，建议优先选择 docker-compose．
 
 当然了，实际上你也可以直接使用 `docker compose` 命令的．
+
+## 迁移 docker 的镜像到 podman
+
+我们知道 docker 的镜像存储路径和 podman 是不同的，我们已经下载好的 docker 镜像并不会直接被 podman 使用．如果我们想要做迁移，需要把原有的 docker 镜像导入给 podman 使用．下面提供一个简单的脚本，用于将 docker 镜像导入给 podman 使用：
+
+```bash
+IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep -v "<none>")
+
+for image in $IMAGES; do
+    echo "正在处理: $image"
+    if [[ $image == *"<none>"* ]]; then
+        continue
+    fi
+    docker save "$image" | podman load
+    sleep 3
+done
+```
 
 ## 小结
 
