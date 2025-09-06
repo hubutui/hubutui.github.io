@@ -13,6 +13,7 @@ tags:
   - rootless docker
   - rootless podman
   - rootless container
+  - nvidia container toolkit
 ---
 
 ## 前言
@@ -57,7 +58,7 @@ unqualified-search-registries = ["docker.io"]
 4. 从仓库拉取镜像可以使用 `docker pull` 命令．一般我们不需要推送自己的镜像到仓库去，如果有需要可以查阅 `docker push` 命令和对应仓库站点的说明（比如如何注册和登录）．
 5. 更多的时候我们可能需要在机器 A 导出镜像文件，然后导入到机器 B．导出镜像为文件可以使用命令 `docker save`，一般建议使用压缩，例如 `docker save nginx:latest | zstd -o nginx.tar.zst`．导出只需要使用 `docker load -i nginx.tar.zst` 即可．除非你用了很老版本的操作系统和 docker 版本，否则导入的时候是自动支持解压的，我们不需要额外的处理．
 
-本小结内容整理自 [docker-for-env-without-internet-access](https://github.com/hubutui/docker-for-env-without-internet-access)，如有需要也可以参考．
+本小节内容整理自 [docker-for-env-without-internet-access](https://github.com/hubutui/docker-for-env-without-internet-access)，如有需要也可以参考．
 
 ## 一些扩展
 
@@ -276,6 +277,12 @@ for image in $IMAGES; do
     sleep 3
 done
 ```
+
+## nvidia container toolkit
+
+如果你还需要在容器中使用 nvidia 显卡，那你一定会用到 [nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html)．在这部分，docker 和 podman 默认的用法有点不同．在 podman 中，对 nvidia 显卡的支持是通过 container device interface (cdi) 来做的，docker 虽然也支持 cdi，但是由于历史原因，它应该不是默认的配置．
+
+我们使用类似 docker 的命令： `podman run -it --rm --gpus all docker.io/pytorch/pytorch:2.2.2-cuda12.1-cudnn8-devel bash`，进入容器后，依然可以正常使用 Nvidia 显卡．这部分兼容没有问题，但是如果是 podman-compose，则具体的 `docker-compose.yaml` 需要使用 cdi 的相关语法了．具体可以查阅相关的文档，或者直接要求 GPT 之类的大模型在输出 `docker-compose.yaml` 考虑到 cdi 的问题．
 
 ## 小结
 
