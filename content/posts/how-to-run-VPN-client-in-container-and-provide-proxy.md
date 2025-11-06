@@ -64,17 +64,24 @@ services:
       # VNC 密码
       - PASSWORD=123456
       - URLWIN=1
+      # 启用 noVNC
+      - USE_NOVNC=1
     volumes:
       - ./volumes/easyconnect:/root
     ports:
-      - "5901:5901"
-      - "8888:8888"
-      - "1080:1080"
+      # VNC 端口
+      - "127.0.0.1:5901:5901"
+      # noVNC 端口
+      - "127.0.0.1:8080:8080"
+      # HTTP 代理端口
+      - "127.0.0.1:8888:8888"
+      # SOCKS5 代理端口
+      - "127.0.0.1:1080:1080"
 ```
 
-然后使用 VNC 客户端连接到 `127.0.0.1:5901`，VNC 的密码为命令行中设置的 `<VNC_PASSWD>`。接着在打开的 easyconnect 图形界面中输入 VPN 服务器地址、用户名、密码、验证码等信息即可登录。VPN 登录成功之后直接关闭 VNC 客户端即可。
+然后使用 VNC 客户端连接到 `127.0.0.1:5901`，VNC 的密码为命令行中设置的 `<VNC_PASSWD>`。没有 VNC 客户端的也可以通过浏览器访问 `127.0.0.1:8080`，使用 VPC 密码登录。接着在打开的 easyconnect 图形界面中输入 VPN 服务器地址、用户名、密码、验证码等信息即可登录。VPN 登录成功之后直接关闭 VNC 客户端即可。
 
-这里命令中的 `127.0.0.1` 表示只允许本机访问，如果允许局域网内的其他机器也来使用，可以去掉 `127.0.0.1`。
+这里端口映射的 `127.0.0.1` 表示只允许本机访问，如果允许局域网内的其他机器也来使用，可以去掉 `127.0.0.1`。一般认为直接把代理端口绑定到 `0.0.0.0` 是不安全的。
 
 这样，我们就配置好 easyconnect，在 `127.0.0.1:1080` 和 `127.0.0.1:8888` 上分别提供 SOCKS5 和 HTTP 代理了。一般我们优先使用 SOCKS5 代理。
 
@@ -82,7 +89,9 @@ services:
 
 这里与 easyconnect 的方法类似，不过我们这里可以尝试使用一个支持自动重新登录的镜像，它也是基于 [docker-easyconnect](https://github.com/docker-easyconnect/docker-easyconnect) 改进而来的。
 
-如果想要自动跳过图形验证码和自动登录，可以参考 [aTrustLogin](https://github.com/kenvix/aTrustLogin)，获取对应的需要配置的参数，填入下面的 docker compose 配置中。不需要自动登录的，可以注释掉环境变量 `ATRUST_OPTS`，VPN 连接到容器之后手动登录即可。环境变量 `PING_ADDR` 用于让容器自动 ping 该地址以保活避免连接断开。自动登录和保活不一定能够生效。
+如果想要自动跳过图形验证码和自动登录，可以参考 [aTrustLogin](https://github.com/kenvix/aTrustLogin)。在浏览器上先登录一次，打开浏览器的开发者工具->Application->Cookies，找到 `tid` 和 `tid.sig` 的值，填入下面的 docker compose 配置中。
+不需要自动处理图形验证码的，省略 `--cookie_sig` 和 `--cookie_tid` 参数，VPN 连接到容器之后手动登录即可。
+环境变量 `PING_ADDR` 用于让容器自动 ping 该地址以保活避免连接断开。自动登录和保活不一定能够生效。
 
 ```yaml
 services:
@@ -96,9 +105,14 @@ services:
     volumes:
       - ./volumes/atrust:/root
     ports:
-      - "5901:5901"
-      - "8888:8888"
-      - "1080:1080"
+      # VNC 端口
+      - "127.0.0.1:5901:5901"
+      # noVNC 端口
+      - "127.0.0.1:8080:8080"
+      # HTTP 代理端口
+      - "127.0.0.1:8888:8888"
+      # SOCKS5 代理端口
+      - "127.0.0.1:1080:1080"
     cap_add:
       - NET_ADMIN
     devices:
@@ -132,13 +146,13 @@ services:
     mac_address: ${SPOOF_MAC:-02:42:ac:11:00:01}
     ports:
       # VNC 端口
-      - "5901:5901"
+      - "127.0.0.1:5901:5901"
       # noVNC 端口，可以使用 http://宿主机IP:6901 访问
-      - "6901:6901"
+      - "127.0.0.1:6901:6901"
       # socks5 代理接口
-      - "1080:1080"
+      - "127.0.0.1:1080:1080"
       # http 代理接口
-      - "8888:8888"
+      - "127.0.0.1:8888:8888"
     shm_size: 2G
     environment:
       VNC_PW: ${VNC_PASSWORD:-univpn}
