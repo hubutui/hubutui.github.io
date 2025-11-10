@@ -69,6 +69,8 @@ xpra start \
 5. `--start` 用于指定要启动的程序，可以使用多次来指定多个，这样方便我们把多个应用程序一起启动，放在同一个会话里方便使用。此外还有一个 `--start-child` 也可以指定要启动的程序，一般和 `--exit-with-children` 搭配使用，如果设置 `--exit-with-children=yes`，xpra 会在所有的 `--start-child` 退出的时候结束掉 xpra 自己。但是我们启动了输入法 fcitx5，一般都不会退出了，使用这个 `--start-child` 也没有什么必要。
 6. 特别注意，输入法的切换键很可能容易与本地的 Windows 的输入法切换冲突，建议修改 fcitx5 的配置，设置输入法切换键为 CTRL + SHIFT。
 7. 如果你的服务器没法使用 SSH 登录，但是有 TCP 端口可以访问，也可以用 `--bind-tcp=0.0.0.0:14500` 来允许通过 TCP 连接。
+8. 如果的系统是 Ubuntu，xpra 对 snap 包的支持不是特别好。例如你的 firefox 是通过 snap 安装的，甚至你用 `apt install firefox` 实际上安装的还是 snap 版本的 firefox，参考 [issue #3740](https://github.com/Xpra-org/xpra/issues/3740)，你可能会遇到 `/user.slice/user-1000.slice/session-85.scope is not a snap cgroup`，然后实际上无法启动 firefox。一个解决方法是给 xpra 命令加上选项 `--dbus-launch=no`。最好的方法是不用 snap。
+9. 部分应用程序是不允许启动多个实例的，例如你用 xpra 在 `:100` 启动了一个 firefox，就无法在 `:101` 启动新的 firefox。
 
 然后是客户端连接，以 Windows 的客户端连接为例，启动 xpra 的客户端之后，点击 Connect，选择 Mode 为 SSH，填入用户名、IP、SSH 端口、DISPLAY 号，密码输入登录密码，如果配置了 SSH 公钥登录则无需填入密码，然后点击 Connect 即可。为了方便，用户可以把这个配置保存为文件，点击 Save 命令并选择合适的保存路径，保存为 `.xpra` 文件即可。注意高分屏下可能保存对话框太大没有显示出来保存按钮，需要调整一下对话框尺寸。下次使用的时候，直接双击打开这个 `.xpra` 文件即可自动填入对应的配置，无需每次填写配置。
 
@@ -89,6 +91,8 @@ xpra 实际上也支持直接启动一个桌面环境，只需要把 `xpra start
 ## 总结
 
 本文简单介绍了 xpra 如何配置和使用，并且给出了一个实际可用的示例，该示例支持中文用户比较需要的 fcitx5 输入法等功能。用户可以根据自己的需要简单修改该命令，即可适用各种情况。
+
+总的来说，xpra 提供了一个非常有特色的转发单个应用程序的远程连接方案，值得尝试。缺点在于部分应用程序的支持不算太好，例如 snap 版本的 firefox 之类的。不过实际上服务器用 Linux 的话，需要用到图形界面的程序实际上并不多，出了一些不得不用的，例如特定的专业软件 MATLAB 之类的。可惜我没有 MATLAB，也没有实际使用 MATLAB 的需要，无法做进一步的测试和验证。
 
 ## 参考
 
