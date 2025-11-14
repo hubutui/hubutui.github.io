@@ -85,6 +85,11 @@ services:
 
 这样，我们就配置好 easyconnect，在 `127.0.0.1:1080` 和 `127.0.0.1:8888` 上分别提供 SOCKS5 和 HTTP 代理了。一般我们优先使用 SOCKS5 代理。
 
+补充：
+
+1. docker-easyconnect 提供 7.6.3 和 7.6.7 两个版本，建议与服务器的版本保持一致，否则可能无法工作。
+2. 如果还是报错版本不对，可以尝试设置环境变量 `DISABLE_PKG_VERSION_XML` 为非空值，跳过版本检查，可能有效。
+
 ## 深信服 atrust VPN
 
 这里与 easyconnect 的方法类似，不过我们这里可以尝试使用一个支持自动重新登录的镜像，它也是基于 [docker-easyconnect](https://github.com/docker-easyconnect/docker-easyconnect) 改进而来的。
