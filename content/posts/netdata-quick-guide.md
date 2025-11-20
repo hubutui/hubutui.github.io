@@ -67,7 +67,7 @@ password       your-password
 
 1. `sendmail` 设置为 `/usr/bin/msmtp`。
 2. 设置 `DEFAULT_RECIPIENT_EMAIL="username@your-domain.com"`，即指定接收邮件的邮箱地址，这里可以设置多个邮件地址，以空格隔开即可。
-3. `EMAIL_SENDER` 可以不用设置，因为前面 `/etc/msmtprc` 已经设置了了 `from`．
+3. `EMAIL_SENDER` 可以不用设置，因为前面 `/etc/msmtprc` 已经设置了 `from`．
 
 设置完毕之后可以使用 `/usr/libexec/netdata/plugins.d/alarm-email.sh test` 尝试发送测试邮件，检查看邮件是否能够发送成功．
 
