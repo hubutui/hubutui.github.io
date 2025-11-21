@@ -218,22 +218,114 @@ archlinuxcn-x86_64-build
 
 **说明**：这里使用 `extra-x86_64-build` 而不是 `pkgctl build`，因为旧版本 pacman 不兼容 `pkgctl build` 新增的某些选项。
 
+## 进阶改进
+
+前面提到不建议更新 pacman 到最新版本，这是因为 pacman 默认采用动态链接方式编译，其运行时会依赖宿主系统提供的共享库。当 Rocky Linux 提供的库版本低于 ArchLinux 打包的 pacman 所需版本时，就会出现兼容性问题导致 pacman 无法正常运行。
+
+EPEL 仓库虽然提供了 pacman，但版本较旧（6.0.2），缺少很多新特性。例如，最新版本的 pacman 提供了 `pkgctl build` 等更便捷的打包命令，而旧版本无法使用这些功能。
+
+为了在不破坏系统稳定性的前提下使用最新版 pacman，我们可以采用**静态链接**的方案。静态链接会将所有依赖库的代码直接编译到可执行文件中，生成的二进制文件不再依赖宿主系统的共享库，从而完全避免了库版本冲突问题。
+
+[pacman-static](https://aur.archlinux.org/packages/pacman-static) 就是一个静态链接版本的 pacman。不过，原版 pacman-static 的 PKGBUILD 为了与系统的 pacman 共存做了一些修改（移除配置文件、重命名二进制文件添加 `-static` 后缀等）。由于我们的目标是用它完全替代 EPEL 的 pacman，需要恢复这些内容。
+
+### 构建 pacman-static
+
+首先在一台 ArchLinux 机器上克隆 pacman-static 的 PKGBUILD：
+
+```bash
+git clone https://aur.archlinux.org/pacman-static.git
+```
+
+修改 PKGBUILD 文件：
+
+1. 从 `depends` 数组中移除 `pacman`（避免依赖冲突）
+2. 修改 `package()` 函数，保留配置文件和原始的二进制文件名：
+
+```bash
+package() {
+    cd "${srcdir}"/pacman
+    DESTDIR="${pkgdir}" meson install -C build
+    # 这里移除了 pacman 的配置文件，重命名了 pacman 的可执行文件
+    # 我们注释掉，保留原样
+    # rm -rf "${pkgdir}"/usr/share "${pkgdir}"/etc
+    # for exe in "${pkgdir}"/usr/bin/*; do
+    #     if [[ -f ${exe} && $(head -c4 "${exe}") = $'\x7fELF' ]]; then
+    #         mv "${exe}" "${exe}"-static
+    #     else
+    #         rm "${exe}"
+    #     fi
+    # done
+
+    cp -a "${srcdir}"/temp/usr/{bin,include,lib} "${pkgdir}"/usr/lib/pacman/
+    sed -i "s@${srcdir}/temp/usr@/usr/lib/pacman@g" \
+        "${pkgdir}"/usr/lib/pacman/lib/pkgconfig/*.pc \
+        "${pkgdir}"/usr/lib/pacman/bin/*
+}
+```
+
+保存修改后，开始构建：
+
+```bash
+cd pacman-static
+# 使用 --skippgpcheck 跳过 PGP 签名验证
+extra-x86_64-build -- -- --skippgpcheck
+```
+
+构建完成后会生成类似 `pacman-static-7.0.0.r6.gc685ae6-19-x86_64.pkg.tar.xz` 的软件包文件。
+
+### 安装到 Rocky Linux
+
+将构建好的软件包复制到 Rocky Linux 机器上，然后安装：
+
+```bash
+pacman -U --overwrite='*' pacman-static-7.0.0.r6.gc685ae6-19-x86_64.pkg.tar.xz
+```
+
+**配置 SSL 证书路径**
+
+由于 ArchLinux 和 Rocky Linux 使用不同的 SSL 证书文件名，需要创建一个软链接：
+
+```bash
+ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+```
+
+**验证安装**
+
+检查 pacman 版本，确认已更新到最新版：
+
+```bash
+pacman --version
+```
+
+最后重新编辑 `/etc/pacman.conf`，启用需要的仓库。现在就可以使用最新版 pacman 的所有功能了，包括 `pkgctl build` 等新命令。
+
 ## 总结
 
-本文介绍了在非 ArchLinux 系统（以 Rocky Linux 为例）上安装 pacman 并配置 ArchLinux 打包环境的方法。核心思路是：
+本文介绍了在非 ArchLinux 系统（以 Rocky Linux 为例）上安装 pacman 并配置 ArchLinux 打包环境的方法。相比 Docker 容器方案，这种方式更加轻量，避免了容器嵌套的复杂性。
+
+### 核心方案
+
+**基础方案**：
 
 1. 利用 EPEL 仓库提供的 pacman 包作为基础
 2. 通过 pacman 安装 ArchLinux 特有的构建工具
 3. 使用 `-Sdd` 参数避免依赖冲突
 
-这种方案相比 Docker 容器方案更加轻量，避免了容器嵌套的复杂性。适用于需要在非 ArchLinux 系统上为 ArchLinux 构建软件包的场景。
+基础方案使用 EPEL 提供的旧版本 pacman（6.0.2），虽然版本较旧，但对于大多数打包需求已经足够，且与宿主系统兼容性最好。
 
-需要注意的关键点：
+**进阶方案**：
 
-- 使用 `pacman -Sdd` 忽略依赖检查，避免安装冲突的系统库
-- 保持 pacman 为较旧版本，确保与宿主系统的库兼容
+对于需要使用最新 pacman 特性（如 `pkgctl build` 等新命令）的场景，可以通过修改打包 pacman-static 来获取最新版本。pacman-static 采用静态链接方式，将所有依赖库打包到二进制文件中，从而避免了动态链接版本的库依赖问题。
+
+### 关键注意事项
+
+- 使用 `pacman -Sdd` 忽略依赖检查，避免安装与宿主系统冲突的库
+- 基础方案保持使用旧版 pacman，确保稳定性；进阶方案使用静态链接的最新版
 - 构建命令需要使用普通用户权限，需正确配置 sudo
+- 进阶方案需要配置 SSL 证书软链接以确保 HTTPS 连接正常
 
-通过这种方式，可以充分利用闲置服务器资源进行软件包编译。
+### 适用范围
 
-此外，对于 Debian/Ubuntu 系统，也支持可以采用类似的方法，只是 Debian/Ubuntu 这边对应的 pacman 包的名字是 pacman-package-manager，其他的操作步骤基本一样，这里不再赘述。
+通过这种方式，可以充分利用闲置服务器资源进行软件包编译，无需在本地占用资源。
+
+此外，对于 Debian/Ubuntu 系统，也可以采用类似的方法，只是对应的 pacman 包名为 `pacman-package-manager`，其他操作步骤基本一致。
