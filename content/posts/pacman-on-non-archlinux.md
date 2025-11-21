@@ -222,7 +222,7 @@ archlinuxcn-x86_64-build
 
 前面提到不建议更新 pacman 到最新版本，这是因为 pacman 默认采用动态链接方式编译，其运行时会依赖宿主系统提供的共享库。当 Rocky Linux 提供的库版本低于 ArchLinux 打包的 pacman 所需版本时，就会出现兼容性问题导致 pacman 无法正常运行。
 
-EPEL 仓库虽然提供了 pacman，但版本较旧（6.0.2），缺少很多新特性。例如，最新版本的 pacman 提供了 `pkgctl build` 等更便捷的打包命令，而旧版本无法使用这些功能。
+EPEL 仓库虽然提供了 pacman，但版本较旧（6.0.2），缺少很多新特性。
 
 为了在不破坏系统稳定性的前提下使用最新版 pacman，我们可以采用**静态链接**的方案。静态链接会将所有依赖库的代码直接编译到可执行文件中，生成的二进制文件不再依赖宿主系统的共享库，从而完全避免了库版本冲突问题。
 
@@ -297,7 +297,7 @@ ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 pacman --version
 ```
 
-最后重新编辑 `/etc/pacman.conf`，启用需要的仓库。现在就可以使用最新版 pacman 的所有功能了，包括 `pkgctl build` 等新命令。
+最后重新编辑 `/etc/pacman.conf`，启用需要的仓库。现在就可以使用最新版 pacman 了。
 
 ## 总结
 
@@ -315,7 +315,7 @@ pacman --version
 
 **进阶方案**：
 
-对于需要使用最新 pacman 特性（如 `pkgctl build` 等新命令）的场景，可以通过修改打包 pacman-static 来获取最新版本。pacman-static 采用静态链接方式，将所有依赖库打包到二进制文件中，从而避免了动态链接版本的库依赖问题。
+对于需要使用最新 pacman 的场景，可以通过修改打包 pacman-static 来获取最新版本。pacman-static 采用静态链接方式，将所有依赖库打包到二进制文件中，从而避免了动态链接版本的库依赖问题。
 
 ### 关键注意事项
 
@@ -323,6 +323,7 @@ pacman --version
 - 基础方案保持使用旧版 pacman，确保稳定性；进阶方案使用静态链接的最新版
 - 构建命令需要使用普通用户权限，需正确配置 sudo
 - 进阶方案需要配置 SSL 证书软链接以确保 HTTPS 连接正常
+- `pkgctl --build` 实测还是无法使用，但是一般使用 `extra-x86_64-build` 或者 `archlinuxcn-x86_64-build` 也足够满足打包需求
 
 ### 适用范围
 
