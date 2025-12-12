@@ -79,8 +79,8 @@ IPv4 地址是一个32位的二进制数，通常采用点分十进制表示法�
 
 docker 在创建桥接网络的时候，会从基地址中划分出来 `size` 大小的子网。根据以上参数，我们可以计算：
 
-- 可划分的子网数量为：$$ 2^(szie - base) $$，这里 `base` 指的是基地址的掩码长度。
-- 每个子网容纳的 IP 数量为：$$ 2^(32 - size) $$
+- 可划分的子网数量为：`2^(szie - base)`，这里 `base` 指的是基地址的掩码长度。
+- 每个子网容纳的 IP 数量为：`2^(32 - size)`。
 
 ### 使用 python 计算
 
@@ -95,6 +95,7 @@ subnets = list(net.subnets(new_prefix=20))
 num_subnets = len(subnets)
 # 子网容纳的地址数量
 num_address_per_subnet = subnets[0].num_addresses
+print(f"可划分子网数量：{num_subnets}，每个子网容纳的地址数量：{num_address_per_subnet}")
 ```
 
 ## docker 的原生地址池配置
@@ -131,11 +132,13 @@ ValueError: 172.17.0.0/12 has host bits set
 这是因为 `172.17.0.0` 的并不是这个网段的网络地址，正确的网络地址应该为 `172.16.0.0`，我们只需要：
 
 ```python
+from ipaddress import IPv4Network
+
 net = IPv4Network("172.17.0.0/12", strict=False)
-print(net.network_address)
+print(net)
 ```
 
-即可知道其网络地址，正确的网段表示应该是 `172.16.0.0/12`。那是否说明 docker 的默认地址池配置如下呢？
+输出结果：`172.16.0.0/12`，即可知道其网络地址，正确的网段表示应该是 `172.16.0.0/12`。那是否说明 docker 的默认地址池配置如下呢？
 
 ```json
 {
@@ -210,11 +213,13 @@ inet 172.20.2.32/20 metric 100 brd 172.20.15.255 scope global dynamic eth
 直接使用：
 
 ```python
+from ipaddress import IPv4Network
+
 net = IPv4Network('172.20.2.32/20', strict=False)
 print(net)
 ```
 
-可以知道所在的子网为 `172.20.0.0/20`。
+可以知道所在的网段为 `172.20.0.0/20`。
 
 如果 docker 使用的网络跟这个子网有重叠，可能会有网络冲突的可能。为此，我们考虑避开这个网段，设置新的默认地址池。或者，考虑到宿主机所在的网络可能会使用 `172.16.0.0/12` 整个私有网段，我们也可以完全不用此网段。我们可以直接仅用 `192.168.0.0/16`，配置如下：
 
@@ -243,6 +248,22 @@ print(net)
 ```
 
 这样就可以创建 4096 个可以容纳 4096 个 IP 的子网了，应该也是足够使用的。
+
+此外，判断两个网段是否有重叠也可以使用以下 python 代码来计算：
+
+```python
+from ipaddress import IPv4Network
+
+net1 = IPv4Network("172.16.0.0/12", strict=False)
+net2 = IPv4Network("10.20.0.0/14", strict=False)
+print(f"{net1} 和 {net2} 有重叠：{net1.overlaps(net2)}")
+```
+
+## 总结
+
+1. 解决 docker compose 子网不足的关键在于修改默认的地址池，减小每个子网的大小，使得 docker 可以创建更多的子网。
+2. 子网的 CIDR 表示可以直接利用简单的 python 代码进行计算，无需手动处理。
+3. 注意避开宿主机所在的网段，否则可能导致意想不到的网络问题。
 
 ## 参考
 
