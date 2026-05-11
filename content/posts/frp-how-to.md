@@ -38,6 +38,29 @@ tags:
 
 frp 分为服务端 frps 和客户端 frpc。其中 frps 运行在机器 B 上，他负责中转。而客户端 frpc 运行在机器 A 上。当机器 C 连接到机器 B 的 frps 服务的时候，机器 B 的 frps 就负责机器 A 和机器 C 之间的双向通信。
 
+整体架构如下图所示：
+
+```mermaid
+graph LR
+    subgraph LAN_B["局域网 B（家庭网络）"]
+        C["机器 C<br/>autossh"]
+    end
+
+    subgraph PUBLIC["公网"]
+        B["机器 B<br/>frps（Docker）"]
+    end
+
+    subgraph LAN_A["局域网 A（校园网/公司内网）"]
+        A["机器 A<br/>frpc + autossh"]
+        A_OTHER["其他内网机器"]
+    end
+
+    C <-->|"SSH 隧道<br/>LocalForward :16001 → :6001<br/>LocalForward :16002 → :6002"| B
+    B <-->|"SSH 隧道<br/>LocalForward :17000 → :7000<br/>frpc 流量经此隧道传输"| A
+    A -->|"socks5/http 代理<br/>访问内网资源"| A_OTHER
+    C -.->|"通过 frp 中转实现内网穿透<br/>socks5://127.0.0.1:16001<br/>http://127.0.0.1:16002"| A
+```
+
 ## 详细部署
 
 ### 服务端
