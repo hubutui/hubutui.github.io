@@ -1,5 +1,5 @@
 baseURL = "https://butui.me"
-languageCode = "en-us"
+locale = "zh-CN"
 defaultContentLanguage = "zh"
 title = "逆水行舟"
 theme = "hermit-v2"
@@ -38,10 +38,10 @@ expiryDate = ["expiryDate"]
 
 [params]
   math = true
-  dateform        = "Jan 2, 2006"
-  dateformShort   = "Jan 2"
-  dateformNum     = "2006-01-02"
-  dateformNumTime = "2006-01-02 15:04 -0700"
+  [params.dateform]
+    LongDate    = "2006-01-02 15:04:05"
+    ShortDate   = "2006-01-02"
+    CopyrightDate = "2006"
 
   # Metadata mostly used in document's head
   # description = ""
