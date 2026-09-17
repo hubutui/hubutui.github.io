@@ -289,6 +289,14 @@ pacman -U --overwrite='*' pacman-static-7.0.0.r6.gc685ae6-19-x86_64.pkg.tar.xz
 ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 ```
 
+**配置**
+
+新版本的 pacman 需要一个系统用户，可以直接添加好：
+
+```bash
+useradd -r alpm
+```
+
 **验证安装**
 
 检查 pacman 版本，确认已更新到最新版：
